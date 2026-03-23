@@ -6,6 +6,7 @@ import EventsSection from "./EventsSection";
 import VideoBlogSection from "./VideoBlogSection";
 import CommitteeSection from "./CommitteeSection";
 import ReviewAndFAQ from "./ReviewAndFAQ";
+import HighlightsSection from "./HighlightsSection";
 import { FaWhatsapp, FaInstagram, FaFacebook, FaYoutube } from "react-icons/fa";
 
 function Home() {
@@ -235,6 +236,8 @@ function Home() {
 
         {/* Existing Component Grid */}
         <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-20 py-10">
+          <HighlightsSection />
+
           <motion.section
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
