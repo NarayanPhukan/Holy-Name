@@ -11,12 +11,12 @@ import { FaWhatsapp, FaInstagram, FaFacebook, FaYoutube } from "react-icons/fa";
 function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const images = [
-    "/src/Pictures/1.JPG",
-    "/src/Pictures/2.JPG",
-    "/src/Pictures/3.JPG",
-    "/src/Pictures/4.JPG",
-    "/src/Pictures/5.JPG",
-    "/src/Pictures/6.JPG",
+    "/Pictures/1.JPG",
+    "/Pictures/2.JPG",
+    "/Pictures/3.JPG",
+    "/Pictures/4.JPG",
+    "/Pictures/5.JPG",
+    "/Pictures/6.JPG",
   ];
 
   useEffect(() => {

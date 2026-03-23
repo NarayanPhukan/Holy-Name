@@ -49,7 +49,7 @@ function Header() {
           {/* Branding */}
           <Link to="/" className="flex items-center gap-3 group cursor-pointer">
             <img
-              src="/src/Pictures/Logo.jpg"
+              src="/Pictures/Logo.jpg"
               className="w-12 h-12 md:w-14 md:h-14 rounded-xl shadow-lg border border-primary/20 group-hover:scale-105 transition-transform duration-300 object-cover"
               alt="Holy Name School Logo"
             />

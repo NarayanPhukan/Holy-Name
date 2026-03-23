@@ -39,7 +39,7 @@ const About = () => {
               </p>
               <div className="flex flex-col gap-3 w-full md:w-64 shrink-0">
                 <img
-                  src="/src/Pictures/about/Fr alex.jpg"
+                  src="/Pictures/about/Fr alex.jpg"
                   alt="Fr Alex"
                   className="w-full h-auto rounded-2xl shadow-lg border border-outline-variant/30 object-cover aspect-square grayscale hover:grayscale-0 transition-all duration-500"
                 />
@@ -63,7 +63,7 @@ const About = () => {
               </p>
               <div className="w-full md:w-80 shrink-0">
                 <img
-                  src="/src/Pictures/about/sch building foundation.png"
+                  src="/Pictures/about/sch building foundation.png"
                   alt="School Building Foundation"
                   className="w-full h-auto rounded-2xl shadow-lg border border-outline-variant/30 sepia hover:sepia-0 transition-all duration-500"
                 />
@@ -84,7 +84,7 @@ const About = () => {
               </p>
               <div className="w-full md:w-80 shrink-0">
                 <img
-                  src="/src/Pictures/about/convent starting.png"
+                  src="/Pictures/about/convent starting.png"
                   alt="Convent Starting"
                   className="w-full h-auto rounded-2xl shadow-lg border border-outline-variant/30 sepia hover:sepia-0 transition-all duration-500"
                 />
@@ -97,7 +97,7 @@ const About = () => {
                <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className="flex flex-col gap-3 w-full md:w-64 shrink-0">
                   <img
-                    src="/src/Pictures/about/Fr Joy.png"
+                    src="/Pictures/about/Fr Joy.png"
                     alt="Fr Joy"
                     className="w-full h-auto rounded-2xl shadow-lg border border-outline-variant/30 object-cover aspect-square grayscale hover:grayscale-0 transition-all duration-500"
                   />
@@ -125,7 +125,7 @@ const About = () => {
                   </div>
                   <div className="flex gap-4">
                     <img
-                      src="/src/Pictures/about/fr Joy in KG initiation day (1).png"
+                      src="/Pictures/about/fr Joy in KG initiation day (1).png"
                       alt="Demo"
                       className="w-48 h-auto rounded-xl shadow-md"
                     />
@@ -148,10 +148,10 @@ const About = () => {
                 Debate and Science Exhibition.
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/src/Pictures/about/IMG_20240731_000804.jpg" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" /></div>
-                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/src/Pictures/about/IMG_20240731_000742.jpg" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" /></div>
-                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/src/Pictures/about/IMG_20240731_000719.jpg" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" /></div>
-                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/src/Pictures/about/IMG_20240731_000657.jpg" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/Pictures/about/IMG_20240731_000804.jpg" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/Pictures/about/IMG_20240731_000742.jpg" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/Pictures/about/IMG_20240731_000719.jpg" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" /></div>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/Pictures/about/IMG_20240731_000657.jpg" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" /></div>
               </div>
             </div>
 
@@ -160,7 +160,7 @@ const About = () => {
                <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className="flex flex-col gap-3 w-full md:w-64 shrink-0">
                   <img
-                    src="/src/Pictures/about/IMG_20240731_000410.jpg"
+                    src="/Pictures/about/IMG_20240731_000410.jpg"
                     alt="Fr Jose"
                     className="w-full h-auto rounded-2xl shadow-lg border border-outline-variant/30 object-cover aspect-square grayscale hover:grayscale-0 transition-all duration-500"
                   />
@@ -176,9 +176,9 @@ const About = () => {
                     3rd largest in Sivasagar.
                   </p>
                   <div className="grid grid-cols-3 gap-3">
-                    <img src="/src/Pictures/about/auditorium-1.JPG" className="w-full h-24 object-cover rounded-xl shadow-md" />
-                    <img src="/src/Pictures/about/IMG_20240731_000637.jpg" className="w-full h-24 object-cover rounded-xl shadow-md" />
-                    <img src="/src/Pictures/about/20240519055618_IMG_6597-1.JPG" className="w-full h-24 object-cover rounded-xl shadow-md" />
+                    <img src="/Pictures/about/auditorium-1.JPG" className="w-full h-24 object-cover rounded-xl shadow-md" />
+                    <img src="/Pictures/about/IMG_20240731_000637.jpg" className="w-full h-24 object-cover rounded-xl shadow-md" />
+                    <img src="/Pictures/about/20240519055618_IMG_6597-1.JPG" className="w-full h-24 object-cover rounded-xl shadow-md" />
                   </div>
                 </div>
               </div>
@@ -191,7 +191,7 @@ const About = () => {
                 <div className="flex-1 h-px bg-outline-variant"></div>
               </div>
               <div className="flex flex-col md:flex-row gap-6">
-                <img src="/src/Pictures/about/IMG_20240731_000427.jpg" className="w-40 h-40 object-cover rounded-2xl shadow-lg shrink-0" />
+                <img src="/Pictures/about/IMG_20240731_000427.jpg" className="w-40 h-40 object-cover rounded-2xl shadow-lg shrink-0" />
                 <p>
                   Fr Vijay completed the extension work of the boys boarding. He tried
                   his level best to keep up the discipline and proper functioning of
@@ -203,10 +203,10 @@ const About = () => {
                 </p>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/src/Pictures/about/IMG_20240731_000508.jpg" className="w-full h-full object-cover" /></div>
-                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/src/Pictures/about/IMG_20240731_000532.jpg" className="w-full h-full object-cover" /></div>
-                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/src/Pictures/about/IMG-20240730-WA0035.jpg" className="w-full h-full object-cover" /></div>
-                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/src/Pictures/about/IMG_20240731_000603.jpg" className="w-full h-full object-cover" /></div>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/Pictures/about/IMG_20240731_000508.jpg" className="w-full h-full object-cover" /></div>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/Pictures/about/IMG_20240731_000532.jpg" className="w-full h-full object-cover" /></div>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/Pictures/about/IMG-20240730-WA0035.jpg" className="w-full h-full object-cover" /></div>
+                <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-md"><img src="/Pictures/about/IMG_20240731_000603.jpg" className="w-full h-full object-cover" /></div>
               </div>
             </div>
 
@@ -217,7 +217,7 @@ const About = () => {
                 <div className="flex-1 h-px bg-outline-variant"></div>
               </div>
               <div className="flex flex-col md:flex-row gap-6">
-                <img src="/src/Pictures/about/IMG_20240731_000445.jpg" className="w-40 h-40 object-cover rounded-2xl shadow-lg shrink-0" />
+                <img src="/Pictures/about/IMG_20240731_000445.jpg" className="w-40 h-40 object-cover rounded-2xl shadow-lg shrink-0" />
                 <p>
                   Fr. Bartholomew’s tenure was mostly marked by the Pandemic
                   (Covid-19), which gravely affected the smooth functioning of the
@@ -234,7 +234,7 @@ const About = () => {
                <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
                 <div className="flex flex-col gap-3 w-full md:w-64 shrink-0">
                   <img
-                    src="/src/Pictures/picturesoftheweb/Fr Hemanta Pegu.JPG"
+                    src="/Pictures/picturesoftheweb/Fr Hemanta Pegu.JPG"
                     alt="Fr Hemanta"
                     className="w-full h-auto rounded-2xl shadow-lg border-[6px] border-white object-cover aspect-square"
                   />
@@ -255,10 +255,10 @@ const About = () => {
                     first time in Holy Name School and still counting...
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <img src="/src/Pictures/about/Chemistry Lab (1).jpg" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
-                    <img src="/src/Pictures/about/bio lab (1).jpg" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
-                    <img src="/src/Pictures/about/computer lab HS building (1).jpg" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
-                    <img src="/src/Pictures/about/school building (1).JPG" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
+                    <img src="/Pictures/about/Chemistry Lab (1).jpg" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
+                    <img src="/Pictures/about/bio lab (1).jpg" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
+                    <img src="/Pictures/about/computer lab HS building (1).jpg" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
+                    <img src="/Pictures/about/school building (1).JPG" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
                   </div>
                 </div>
               </div>
