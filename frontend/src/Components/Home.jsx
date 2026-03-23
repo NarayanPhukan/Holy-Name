@@ -6,7 +6,6 @@ import EventsSection from "./EventsSection";
 import VideoBlogSection from "./VideoBlogSection";
 import CommitteeSection from "./CommitteeSection";
 import ReviewAndFAQ from "./ReviewAndFAQ";
-import StudentPortalBtn from "./StudentPortalBtn";
 import { FaWhatsapp, FaInstagram, FaFacebook, FaYoutube } from "react-icons/fa";
 
 function Home() {
@@ -231,9 +230,6 @@ function Home() {
               compassionate leaders of tomorrow. Empowering young minds to
               dream, discover, and achieve."
             </p>
-            <div className="mt-8">
-              <StudentPortalBtn />
-            </div>
           </motion.div>
         </section>
 
