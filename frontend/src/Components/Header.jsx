@@ -6,193 +6,125 @@ import { GiHamburgerMenu } from "react-icons/gi";
 function Header() {
   const [showMediaIcons, setShowMediaIcons] = useState(false);
 
+  // Helper for NavLink
+  const navLinkClass = ({ isActive }) =>
+    `block px-3 py-2 ${
+      isActive
+        ? "text-[#500088] border-b-2 border-[#735c00] pb-1 font-bold"
+        : "text-slate-600 dark:text-slate-400 font-medium hover:text-[#500088] hover:bg-purple-50"
+    } rounded-lg transition-all text-sm whitespace-nowrap`;
+
+  // Helper for Sub NavLink
+  const subNavLinkClass = ({ isActive }) =>
+    `hover:text-primary transition-colors flex items-center gap-1 ${isActive ? "text-primary" : ""}`;
+
   return (
-    <header className="shadow z-50 top-0">
-      {/* Top Section with Logo, School Name, and Admin Login */}
-      <div className="flex flex-col lg:gap-3 gap-5 md:flex-row w-full bg-purple-700 p-4 pl-9 pr-9 shadow-lg">
-        <div className="mx-auto md:my-auto">
-          <Link to="/">
-            <img
-              src="/src/Pictures/Logo.jpg"
-              className="h-24 w-24 rounded-lg"
-              alt="Logo"
-            />
-          </Link>
-        </div>
-        <div className="flex-col text-center space-y-2">
-          <h1 className="text-slate-200 text-base md:text-md lg:text-lg xl:text-2xl font-bold uppercase">
-            Holy Name Senior Secondary School, Sivasagar
-          </h1>
-          <h2 className="text-slate-300 text-base lg:text-md font-bold">
-            হলী নেম চিনিয়ৰ ছেকেণ্ডাৰী স্কুল, শিৱসাগৰ।
-          </h2>
-          <p className="text-white text-sm md:text-sm">
-            Cherekapar, Dist:- Sivasagar, Assam-785640
-          </p>
-          <p className="text-white text-sm md:text-sm">Ph-6901055733</p>
-        </div>
-        <div className="mx-auto md:my-auto mb-5">
-          <AdminLoginBtn />
+    <header className="sticky top-0 z-50 w-full shadow-sm transition-all duration-300">
+      {/* Top Utility Bar */}
+      <div className="w-full bg-primary-container text-on-primary py-2 px-4 md:px-6">
+        <div className="max-w-7xl mx-auto flex justify-between items-center text-xs font-semibold tracking-widest uppercase">
+          <div className="flex items-center gap-6">
+            <a
+              className="flex items-center gap-2 hover:text-secondary-container transition-colors duration-300"
+              href="tel:6901055733"
+            >
+              <span className="material-symbols-outlined text-[16px]">call</span>
+              <span className="hidden sm:inline">6901055733</span>
+            </a>
+            <div className="hidden md:flex items-center gap-2 opacity-80">
+              <span className="material-symbols-outlined text-[16px]">location_on</span>
+              Sivasagar, Assam
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            {/* The Admin Login button previously wrapped in a link */}
+            <AdminLoginBtn />
+          </div>
         </div>
       </div>
 
-      {/* Navigation Section */}
-      <nav className="main-nav bg-slate-200 border-b-4 border-blue-500 px-4 lg:px-4 py-4 top-0 sticky text-blue-600">
-        <div className="p-2 flex justify-between items-center mx-auto max-w-screen-xl">
-          <div className="gap-2 lg:flex lg:flex-row lg:justify-center mr-8 hidden text-bold right-4 float-right pr-4 font-medium text-sm">
-            <img src="/src/assets/phone.png" className="w-[24px] block" />
-            <p>6901055733</p>
-          </div>
-          <div
-            className={`${
-              showMediaIcons ? "block" : "hidden"
-            } mx-auto w-full lg:flex lg:w-auto lg:order-1`}
+      {/* Main Navigation Header */}
+      <div className="bg-[#fcf8ff] dark:bg-slate-950/80 backdrop-blur-xl border-b border-primary/10">
+        <div className="max-w-7xl mx-auto flex justify-between items-center w-full px-4 md:px-6 py-4">
+          {/* Branding */}
+          <Link to="/" className="flex items-center gap-3 group cursor-pointer">
+            <img
+              src="/src/Pictures/Logo.jpg"
+              className="w-12 h-12 md:w-14 md:h-14 rounded-xl shadow-lg border border-primary/20 group-hover:scale-105 transition-transform duration-300 object-cover"
+              alt="Holy Name School Logo"
+            />
+            <div className="flex flex-col">
+              <h1 className="font-['Noto_Serif'] font-black text-[#500088] dark:text-purple-300 tracking-tighter text-sm sm:text-lg md:text-xl leading-tight">
+                Holy Name Senior Secondary School
+              </h1>
+              <span className="text-[9px] sm:text-[10px] tracking-[0.2em] uppercase font-bold text-secondary">
+                Excellence in Education
+              </span>
+            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden xl:flex items-center gap-1">
+            <NavLink to="/" className={navLinkClass}>Home</NavLink>
+            <NavLink to="/principal" className={navLinkClass}>Principal</NavLink>
+            <NavLink to="/about" className={navLinkClass}>About</NavLink>
+            <NavLink to="/courses" className={navLinkClass}>Courses</NavLink>
+            <NavLink to="/admission" className={navLinkClass}>Admission</NavLink>
+            <NavLink to="/notice" className={navLinkClass}>Notice</NavLink>
+          </nav>
+
+          {/* Mobile Menu Toggle */}
+          <button
+            className="xl:hidden p-2 text-primary focus:outline-none"
+            onClick={() => setShowMediaIcons(!showMediaIcons)}
           >
-            <ul className="flex flex-col lg:flex-row lg:space-x-8 mt-4 lg:mt-0 font-medium">
-              <li>
-                <NavLink
-                  to="/"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Home
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/principal"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Principal
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/about"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  About
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/courses"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Courses
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/admission"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Admission
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/faculty"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Faculty
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/notice"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Notice
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/gallery"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Gallery
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/career"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Career
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/complaints"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Suggestions
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/contact"
-                  className={({ isActive }) =>
-                    `block py-2 pr-4 pl-3 duration-200 ${
-                      isActive ? "text-orange-700" : "text-blue-600"
-                    } border-b border-gray-100 hover:bg-gray-50 lg:px-2 lg:py-1 lg:hover:bg-transparent lg:border-2 lg:border-blue-500 lg:rounded-md hover:text-orange-700`
-                  }
-                >
-                  Contact
-                </NavLink>
-              </li>
-            </ul>
-          </div>
-          <div className="lg:hidden block">
-            <button
-              onClick={() => setShowMediaIcons(!showMediaIcons)}
-              className="text-gray-500 hover:text-gray-700 focus:outline-none focus:text-gray-700"
-            >
-              <GiHamburgerMenu size={24} />
-            </button>
+            <GiHamburgerMenu size={28} />
+          </button>
+        </div>
+
+        {/* Sub-navigation Cluster (Desktop Contextual) */}
+        <div className="hidden xl:block w-full border-t border-purple-50 bg-white/50">
+          <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-center gap-8 text-[11px] font-bold tracking-widest uppercase text-slate-500 overflow-hidden">
+            <NavLink to="/faculty" className={subNavLinkClass}>
+              <span className="material-symbols-outlined text-sm">group</span> Faculty
+            </NavLink>
+            <NavLink to="/gallery" className={subNavLinkClass}>
+              <span className="material-symbols-outlined text-sm">gallery_thumbnail</span> Gallery
+            </NavLink>
+            <NavLink to="/career" className={subNavLinkClass}>
+              <span className="material-symbols-outlined text-sm">work</span> Career
+            </NavLink>
+            <NavLink to="/complaints" className={subNavLinkClass}>
+              <span className="material-symbols-outlined text-sm">lightbulb</span> Suggestions
+            </NavLink>
+            <NavLink to="/contact" className={subNavLinkClass}>
+              <span className="material-symbols-outlined text-sm">contact_support</span> Contact
+            </NavLink>
           </div>
         </div>
-      </nav>
+
+        {/* Mobile Dropdown Menu */}
+        <div
+          className={`xl:hidden flex flex-col bg-white overflow-hidden transition-all duration-300 ease-in-out ${
+            showMediaIcons ? "max-h-[500px] border-t border-purple-50 shadow-lg" : "max-h-0"
+          }`}
+        >
+          <ul className="flex flex-col font-medium py-2">
+            <li><NavLink to="/" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Home</NavLink></li>
+            <li><NavLink to="/principal" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Principal</NavLink></li>
+            <li><NavLink to="/about" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>About</NavLink></li>
+            <li><NavLink to="/courses" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Courses</NavLink></li>
+            <li><NavLink to="/admission" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Admission</NavLink></li>
+            <li><NavLink to="/notice" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Notice</NavLink></li>
+            <div className="border-t border-gray-100 my-1 mx-3"></div>
+            <li><NavLink to="/faculty" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Faculty</NavLink></li>
+            <li><NavLink to="/gallery" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Gallery</NavLink></li>
+            <li><NavLink to="/career" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Career</NavLink></li>
+            <li><NavLink to="/complaints" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Suggestions</NavLink></li>
+            <li><NavLink to="/contact" className={navLinkClass} onClick={() => setShowMediaIcons(false)}>Contact</NavLink></li>
+          </ul>
+        </div>
+      </div>
     </header>
   );
 }

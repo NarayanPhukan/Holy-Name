@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FaBookOpen, FaAtom, FaBalanceScale, FaLandmark, FaChild, FaGraduationCap } from "react-icons/fa";
 
 function Courses() {
   const [selectedCategory, setSelectedCategory] = useState("Science");
@@ -26,224 +27,141 @@ function Courses() {
       "Psychology",
     ],
   };
+
+  const levels = [
+    { title: "Play School", desc: "A nurturing environment where early learning meets structured play, setting the foundational stones for lifelong curiosity.", icon: <FaChild className="text-3xl text-amber-500" /> },
+    { title: "Nursery", desc: "Fostering social skills, early literacy, and numeracy through engaging and interactive activities.", icon: <FaChild className="text-3xl text-amber-500" /> },
+    { title: "Lower Primary", desc: "Building core academic competencies in a supportive setting, encouraging independent thought and collaborative learning.", icon: <FaBookOpen className="text-3xl text-amber-500" /> },
+    { title: "Upper Primary", desc: "Expanding knowledge horizons with a diverse curriculum designed to challenge and inspire growing minds.", icon: <FaBookOpen className="text-3xl text-amber-500" /> },
+    { title: "Secondary School", desc: "Preparing students for rigorous academic challenges and holistic personal development ahead of crucial board examinations.", icon: <FaGraduationCap className="text-3xl text-amber-500" /> },
+  ];
+
+  const rules = [
+    "Students must maintain 80% attendance throughout the academic year.",
+    "Strict adherence to the school uniform policy is mandatory at all times.",
+    "Mobile phones and electronic gadgets are strictly prohibited on campus.",
+    "Respectful code of conduct towards peers, faculty, and administrative staff.",
+    "Participation in at least one extracurricular activity is highly encouraged.",
+    "Timely submission of assignments and project work is essential.",
+  ];
+
   return (
-    <div>
-      <section>
-        <div className="bg-gray-100 p-6 md:p-12 lg:p-10">
-          <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl font-bold mb-6 text-center text-green-800">
-              Play School
-            </h1>
-
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4 text-center text-green-700">
-                Welcome to Our Play School
-              </h2>
-              <p className="text-lg mb-4 leading-relaxed">
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Odio,
-                non eos cumque eaque, suscipit ratione ipsum mollitia facere
-                tempora repellendus sunt quidem, doloribus quibusdam numquam nam
-                vel voluptatum qui obcaecati tempore repellat. Aliquid, ipsa.
-                Quibusdam, omnis ex, adipisci mollitia deserunt natus et optio,
-                libero esse quas velit. Quasi, odit culpa?
-              </p>
-              <p className="text-lg mb-4 leading-relaxed">
-                Come join us and see how we can help your child thrive in their
-                early years!
-              </p>
-            </div>
-          </div>
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800">
+      {/* Hero Section */}
+      <section className="relative w-full h-[40vh] min-h-[300px] flex items-center justify-center bg-[#4C1A57] overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#4C1A57] to-transparent opacity-80"></div>
+        <div className="relative z-10 text-center px-4">
+          <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight">Academic Programmes</h1>
+          <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto font-light">
+            Empowering students with a comprehensive and dynamic curriculum designed for holistic excellence.
+          </p>
         </div>
       </section>
-      <section>
-        <div className="bg-blue-100 p-6 md:p-12 lg:p-10">
-          <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl font-bold mb-6 text-center text-green-800">
-              Nursery
-            </h1>
 
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4 text-center text-green-700">
-                Welcome to Our Nursery
-              </h2>
-              <p className="text-lg mb-4 leading-relaxed">
-                Lorem ipsum dolor sit, amet consectetur adipisicing elit. Velit
-                nobis, maiores distinctio voluptatum labore ut culpa quis unde
-                molestiae esse ducimus accusantium vero ex perspiciatis ipsum
-                consequatur adipisci placeat! Alias, rem nobis ratione nam iure
-                architecto qui, dolor excepturi, deleniti similique eligendi
-                nesciunt commodi molestias quam! Animi accusamus ipsam quis.
-              </p>
-              <p className="text-lg mb-4 leading-relaxed">
-                Come join us and see how we can help your child thrive in their
-                early years!
-              </p>
-            </div>
-          </div>
+      {/* School Levels Grid */}
+      <section className="py-20 px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#4C1A57] mb-4">Educational Wings</h2>
+          <div className="h-1 w-20 bg-amber-500 mx-auto rounded-full"></div>
+          <p className="mt-6 text-gray-600 max-w-2xl mx-auto text-lg leading-relaxed">
+            From early childhood setting the foundation to secondary education shaping future leaders, we provide a seamless educational journey.
+          </p>
         </div>
-      </section>
-      <section>
-        <div className="bg-gray-100 p-6 md:p-12 lg:p-10">
-          <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl font-bold mb-6 text-center text-green-800">
-              Lower Primary School
-            </h1>
 
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4 text-center text-green-700">
-                Welcome to Our Lower Primary School
-              </h2>
-              <p className="text-lg mb-4 leading-relaxed">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Maiores
-                quae ipsa provident laborum. Consequatur amet facere
-                exercitationem aperiam excepturi, itaque magni at cumque sunt
-                porro quia. Cupiditate, doloremque necessitatibus optio quia
-                nobis maiores explicabo placeat vitae iusto assumenda recusandae
-                voluptas commodi saepe distinctio amet impedit ea nam veniam
-                accusantium! Sed.
-              </p>
-              <p className="text-lg mb-4 leading-relaxed">
-                Come join us and see how we can help your child thrive in their
-                early years!
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section>
-        <div className="bg-blue-100 p-6 md:p-12 lg:p-10">
-          <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl font-bold mb-6 text-center text-green-800">
-              Primary School
-            </h1>
-
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4 text-center text-green-700">
-                Welcome to Our Primary School
-              </h2>
-              <p className="text-lg mb-4 leading-relaxed">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Quaerat
-                minus harum doloribus enim quibusdam accusantium consequuntur
-                ducimus ex ratione, repellat provident officia aliquid, beatae
-                repudiandae, adipisci illum nihil praesentium laborum similique
-                obcaecati reiciendis soluta. Mollitia eligendi accusantium illum
-                dolorem quasi voluptates quas ullam placeat maiores officiis,
-                quidem voluptate aperiam provident.
-              </p>
-              <p className="text-lg mb-4 leading-relaxed">
-                Come join us and see how we can help your child thrive in their
-                early years!
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section>
-        <div className="bg-gray-100 p-6 md:p-12 lg:p-10">
-          <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl font-bold mb-6 text-center text-green-800">
-              Secondary School
-            </h1>
-
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4 text-center text-green-700">
-                Secondary School
-              </h2>
-              <p className="text-lg mb-4 leading-relaxed">
-                Lorem, ipsum dolor sit amet consectetur adipisicing elit.
-                Recusandae aut eius, omnis magni nisi laboriosam a nesciunt
-                illum exercitationem rerum voluptas, maxime porro sed ab sunt
-                fuga labore, cupiditate ex architecto? Laboriosam ipsa vero
-                rerum adipisci illo, velit ea, sapiente dolorum repellat
-                inventore deserunt delectus error illum minima temporibus
-                debitis.
-              </p>
-              <p className="text-lg mb-4 leading-relaxed">
-                Come join us and see how we can help your child thrive in their
-                early years!
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <div>
-        {/* After 10th */}
-
-        <div>
-          <section className="bg-gradient-to-r from-blue-100 to-blue-200 min-h-screen flex items-center">
-            <div className="max-w-5xl mx-auto p-5 lg:p-10">
-              <div className="bg-white rounded-lg shadow-lg p-8 lg:p-12">
-                <h1 className="text-4xl font-extrabold mb-6 text-center text-green-900">
-                  Course Offerings after 10th "Higher Secondary"
-                </h1>
-
-                <div className="flex flex-col md:flex-row justify-center mb-8">
-                  {Object.keys(courses).map((category) => (
-                    <button
-                      key={category}
-                      className={`m-2 px-6 py-3 rounded-full font-semibold text-white transition duration-300 ease-in-out transform ${
-                        selectedCategory === category
-                          ? "bg-orange-800 hover:bg-orange-900 scale-105"
-                          : "bg-orange-500 hover:bg-orange-600"
-                      }`}
-                      onClick={() => setSelectedCategory(category)}
-                    >
-                      {category}
-                    </button>
-                  ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {levels.map((level, index) => (
+            <div key={index} className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F3E8F5] rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-[#4C1A57] rounded-xl flex items-center justify-center mb-6 shadow-md">
+                  {level.icon}
                 </div>
+                <h3 className="text-2xl font-serif font-bold text-[#4C1A57] mb-3">{level.title}</h3>
+                <p className="text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors">
+                  {level.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-                <div>
-                  <h2 className="text-3xl font-semibold mb-6 text-center text-green-900">
-                    Subjects Offered in {selectedCategory} for (11th - 12th)
-                  </h2>
-                  <ul className="list-disc list-inside space-y-3 text-lg">
-                    {courses[selectedCategory].map((subject, index) => (
-                      <li key={index} className="text-green-700 font-medium">
-                        {subject}
-                      </li>
-                    ))}
-                  </ul>
+      {/* Higher Secondary Section (11th & 12th) */}
+      <section className="py-20 bg-[#F9F9FB]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-12">
+            <div className="md:w-1/2 mb-8 md:mb-0 pr-0 md:pr-12">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#4C1A57] mb-4">Higher Secondary</h2>
+              <h3 className="text-xl text-amber-600 font-semibold mb-6">Grades XI & XII</h3>
+              <p className="text-gray-600 text-lg leading-relaxed mb-6">
+                Our senior secondary curriculum provides specialized streams allowing students to focus on their passions and prepare meticulously for higher education and competitive examinations.
+              </p>
+              
+              {/* Custom Tab Navigation */}
+              <div className="flex flex-wrap gap-3">
+                {Object.keys(courses).map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-6 py-2.5 rounded-full font-medium text-sm md:text-base transition-all duration-300 shadow-sm ${
+                      selectedCategory === category
+                        ? "bg-[#4C1A57] text-white shadow-md transform scale-105"
+                        : "bg-white text-gray-600 hover:bg-white hover:text-[#4C1A57] hover:shadow-md border border-gray-200"
+                    }`}
+                  >
+                    {category === "Science" && <FaAtom className="inline-block mr-2 -mt-1" />}
+                    {category === "Commerce" && <FaBalanceScale className="inline-block mr-2 -mt-1" />}
+                    {category === "Arts" && <FaLandmark className="inline-block mr-2 -mt-1" />}
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Subject List Display */}
+            <div className="md:w-1/2 w-full">
+              <div className="bg-white rounded-2xl shadow-lg p-8 md:p-10 border-t-4 border-[#4C1A57]">
+                <h3 className="text-2xl font-serif font-bold text-[#4C1A57] mb-6 flex items-center">
+                  <span className="bg-amber-100 text-amber-700 p-2 rounded-lg mr-3">
+                    {selectedCategory === "Science" && <FaAtom />}
+                    {selectedCategory === "Commerce" && <FaBalanceScale />}
+                    {selectedCategory === "Arts" && <FaLandmark />}
+                  </span>
+                  {selectedCategory} Stream
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {courses[selectedCategory].map((subject, index) => (
+                    <div key={index} className="flex items-center bg-[#F9F9FB] p-4 rounded-xl border border-gray-100 hover:border-amber-300 transition-colors">
+                      <div className="w-2 h-2 rounded-full bg-amber-500 mr-3 hidden sm:block"></div>
+                      <span className="text-gray-800 font-medium">{subject}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-          </section>
+          </div>
         </div>
-      </div>
-      <section>
-        <div className="bg-gray-100 p-6 md:p-12 lg:p-10">
-          <div className="max-w-5xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-            <h1 className="text-3xl font-bold mb-6 text-center text-red-800">
-              General Rules and Regulations
-            </h1>
+      </section>
 
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4 text-center text-red-700">
-                Please Follow These Guidelines
-              </h2>
-              <p className="text-lg mb-4 leading-relaxed">
-                To ensure a safe and productive learning environment, we ask all
-                students, staff, and visitors to adhere to the following rules
-                and regulations:
-              </p>
-              <ul className="list-disc list-inside text-lg mb-4">
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-                <li>Rule1........................................</li>
-              </ul>
-              <p className="text-lg mb-4 leading-relaxed">
-                By following these rules and regulations, we can create a
-                positive and supportive environment for everyone. Thank you for
-                your cooperation.
-              </p>
+      {/* Rules and Regulations */}
+      <section className="py-20 px-6 max-w-5xl mx-auto">
+        <div className="bg-[#4C1A57] rounded-3xl p-8 md:p-14 shadow-2xl relative overflow-hidden text-white">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-40 h-40 bg-white opacity-5 rounded-full -ml-10 -mb-10"></div>
+          
+          <div className="relative z-10">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-8 text-center">General Code of Conduct</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {rules.map((rule, idx) => (
+                <div key={idx} className="flex items-start bg-white/10 p-5 rounded-xl backdrop-blur-sm border border-white/10">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white font-bold mr-4 mt-1">
+                    {idx + 1}
+                  </span>
+                  <p className="text-white/90 leading-relaxed">{rule}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -253,3 +171,4 @@ function Courses() {
 }
 
 export default Courses;
+

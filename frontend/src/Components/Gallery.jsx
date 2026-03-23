@@ -1,161 +1,188 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState } from "react";
+import { FaImages, FaPlay, FaSearchPlus } from "react-icons/fa";
 
-const Gallery = () => {
-  const [currentIndex, setCurrentIndex] = useState({
-    sportsWeek: 0,
-    scienceExhibition: 0,
-    morningAssembly: 0,
-    competitions: 0,
-    others1: 0,
-    others2: 0,
-  });
+function Gallery() {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  const images = useMemo(() => ({
-    sportsWeek: [
-      "https://via.placeholder.com/300?text=Sports+1",
-      "https://via.placeholder.com/300?text=Sports+2",
-      "https://via.placeholder.com/300?text=Sports+3",
-      "https://via.placeholder.com/300?text=Sports+4",
-      "https://via.placeholder.com/300?text=Sports+5",
-    ],
-    scienceExhibition: [
-      "https://via.placeholder.com/300?text=Science+1",
-      "https://via.placeholder.com/300?text=Science+2",
-      "https://via.placeholder.com/300?text=Science+3",
-      "https://via.placeholder.com/300?text=Science+4",
-      "https://via.placeholder.com/300?text=Science+5",
-    ],
-    morningAssembly: [
-      "https://via.placeholder.com/300?text=Assembly+1",
-      "https://via.placeholder.com/300?text=Assembly+2",
-      "https://via.placeholder.com/300?text=Assembly+3",
-      "https://via.placeholder.com/300?text=Assembly+4",
-      "https://via.placeholder.com/300?text=Assembly+5",
-    ],
-    competitions: [
-      "https://via.placeholder.com/300?text=Competition+1",
-      "https://via.placeholder.com/300?text=Competition+2",
-      "https://via.placeholder.com/300?text=Competition+3",
-      "https://via.placeholder.com/300?text=Competition+4",
-      "https://via.placeholder.com/300?text=Competition+5",
-    ],
-    others1: [
-      "https://via.placeholder.com/300?text=Other+1",
-      "https://via.placeholder.com/300?text=Other+2",
-      "https://via.placeholder.com/300?text=Other+3",
-      "https://via.placeholder.com/300?text=Other+4",
-      "https://via.placeholder.com/300?text=Other+5",
-    ],
-    others2: [
-      "https://via.placeholder.com/300?text=Other+6",
-      "https://via.placeholder.com/300?text=Other+7",
-      "https://via.placeholder.com/300?text=Other+8",
-      "https://via.placeholder.com/300?text=Other+9",
-      "https://via.placeholder.com/300?text=Other+10",
-    ],
-  }), []);
+  const categories = ["All", "Campus Life", "Academic Events", "Sports", "Cultural Programs"];
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => ({
-        sportsWeek: (prevIndex.sportsWeek + 1) % images.sportsWeek.length,
-        scienceExhibition:
-          (prevIndex.scienceExhibition + 1) % images.scienceExhibition.length,
-        morningAssembly:
-          (prevIndex.morningAssembly + 1) % images.morningAssembly.length,
-        competitions: (prevIndex.competitions + 1) % images.competitions.length,
-        others1: (prevIndex.others1 + 1) % images.others1.length,
-        others2: (prevIndex.others2 + 1) % images.others2.length,
-      }));
-    }, 3000);
+  const galleryItems = [
+    {
+      id: 1,
+      category: "Academic Events",
+      title: "Science Exhibition 2023",
+      src: "https://images.unsplash.com/photo-1564069114553-7215e1ff1890?w=800&auto=format&fit=crop&q=60",
+      featured: true,
+    },
+    {
+      id: 2,
+      category: "Sports",
+      title: "Annual Sports Day",
+      src: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=60",
+      featured: false,
+    },
+    {
+      id: 3,
+      category: "Campus Life",
+      title: "Morning Assembly",
+      src: "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=60",
+      featured: true,
+    },
+    {
+      id: 4,
+      category: "Cultural Programs",
+      title: "Foundation Day Celebration",
+      src: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
+      featured: false,
+    },
+    {
+      id: 5,
+      category: "Academic Events",
+      title: "Inter-School Debate",
+      src: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=60",
+      featured: false,
+    },
+    {
+      id: 6,
+      category: "Campus Life",
+      title: "Library Reading Session",
+      src: "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&auto=format&fit=crop&q=60",
+      featured: false,
+    },
+    {
+      id: 7,
+      category: "Sports",
+      title: "Basketball Tournament",
+      src: "https://images.unsplash.com/photo-1519861531473-9200262188bf?w=800&auto=format&fit=crop&q=60",
+      featured: true,
+    },
+    {
+      id: 8,
+      category: "Cultural Programs",
+      title: "Art & Craft Workshop",
+      src: "https://images.unsplash.com/photo-1460518451285-97b6aa326961?w=800&auto=format&fit=crop&q=60",
+      featured: false,
+    },
+    {
+      id: 9,
+      category: "Campus Life",
+      title: "Computer Lab Session",
+      src: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=60",
+      featured: false,
+    },
+  ];
 
-    return () => clearInterval(interval);
-  }, [images]);
+  const filteredItems = activeCategory === "All" 
+    ? galleryItems 
+    : galleryItems.filter(item => item.category === activeCategory);
 
   return (
-    <div>
-      <section className="bg-gray-200 text-gray-800 p-10">
-        <div className="container mx-auto">
-          <h2 className="text-3xl font-bold text-center underline mb-10">
-            Gallery Section
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Sports Week */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-bold">Sports Week</h3>
-              <div className="relative h-64 md:h-auto my-4">
-                <img
-                  src={images.sportsWeek[currentIndex.sportsWeek]}
-                  alt={`Sports Week Image ${currentIndex.sportsWeek + 1}`}
-                  className="object-cover h-full w-full rounded-lg"
-                />
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
+      {/* Hero Section */}
+      <section className="relative w-full h-[40vh] min-h-[300px] flex items-center justify-center bg-[#4C1A57] overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20 transform scale-105 hover:scale-100 transition-transform duration-1000"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#4C1A57] via-[#4C1A57]/80 to-transparent"></div>
+        <div className="relative z-10 text-center px-4">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 tracking-tight flex items-center justify-center">
+            <FaImages className="text-amber-500 mr-4 drop-shadow-lg" />
+            Photo Gallery
+          </h1>
+          <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto font-light mb-8">
+            Glimpses of academic excellence, vibrant campus life, and memorable events at Holy Name School.
+          </p>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-6 -mt-8 relative z-20">
+        
+        {/* Filter Navigation */}
+        <div className="bg-white rounded-2xl shadow-xl p-2 mb-12 flex flex-wrap justify-center border border-gray-100">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              className={`px-6 py-3 m-1 rounded-xl text-sm font-bold transition-all duration-300 ${
+                activeCategory === category
+                  ? "bg-[#4C1A57] text-white shadow-md transform scale-105"
+                  : "bg-transparent text-gray-600 hover:bg-gray-100 hover:text-[#4C1A57]"
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* Masonry-style Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-[250px]">
+          {filteredItems.map((item) => (
+            <div 
+              key={item.id} 
+              className={`relative overflow-hidden rounded-3xl shadow-md group cursor-pointer border border-gray-100 bg-white ${
+                item.featured ? 'md:col-span-2 md:row-span-2' : 'col-span-1 row-span-1'
+              }`}
+              onClick={() => setSelectedImage(item)}
+            >
+              <img 
+                src={item.src} 
+                alt={item.title} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#4C1A57]/90 via-[#4C1A57]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              
+              <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                <span className="inline-block px-3 py-1 bg-amber-500 text-[#4C1A57] text-xs font-bold rounded-full mb-2 shadow-sm">
+                  {item.category}
+                </span>
+                <h3 className="text-white text-xl font-bold">{item.title}</h3>
+              </div>
+              
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-sm w-16 h-16 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
+                <FaSearchPlus className="text-white text-2xl" />
               </div>
             </div>
+          ))}
+        </div>
 
-            {/* Science Exhibition */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-bold">Science Exhibition</h3>
-              <div className="relative h-64 md:h-auto my-4">
-                <img
-                  src={images.scienceExhibition[currentIndex.scienceExhibition]}
-                  alt={`Science Exhibition Image ${currentIndex.scienceExhibition + 1}`}
-                  className="object-cover h-full w-full rounded-lg"
-                />
-              </div>
-            </div>
+        {filteredItems.length === 0 && (
+          <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
+            <FaImages className="text-6xl text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-gray-500">No images found in this category.</h3>
+          </div>
+        )}
+      </div>
 
-            {/* Morning Assembly */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-bold">Morning Assembly</h3>
-              <div className="relative h-64 md:h-auto my-4">
-                <img
-                  src={images.morningAssembly[currentIndex.morningAssembly]}
-                  alt={`Morning Assembly Image ${currentIndex.morningAssembly + 1}`}
-                  className="object-cover h-full w-full rounded-lg"
-                />
-              </div>
-            </div>
-
-            {/* Competitions */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-bold">Competitions</h3>
-              <div className="relative h-64 md:h-auto my-4">
-                <img
-                  src={images.competitions[currentIndex.competitions]}
-                  alt={`Competitions Image ${currentIndex.competitions + 1}`}
-                  className="object-cover h-full w-full rounded-lg"
-                />
-              </div>
-            </div>
-
-            {/* Others */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-bold">Others</h3>
-              <div className="relative h-64 md:h-auto my-4">
-                <img
-                  src={images.others1[currentIndex.others1]}
-                  alt={`Others Image ${currentIndex.others1 + 1}`}
-                  className="object-cover h-full w-full rounded-lg"
-                />
-              </div>
-            </div>
-
-            {/* Others */}
-            <div className="mb-10">
-              <h3 className="text-2xl font-bold">Others</h3>
-              <div className="relative h-64 md:h-auto my-4">
-                <img
-                  src={images.others2[currentIndex.others2]}
-                  alt={`Others Image ${currentIndex.others2 + 1}`}
-                  className="object-cover h-full w-full rounded-lg"
-                />
+      {/* Lightbox Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-10" onClick={() => setSelectedImage(null)}>
+          <div className="relative max-w-5xl w-full" onClick={e => e.stopPropagation()}>
+            <button 
+              className="absolute -top-12 right-0 text-white hover:text-amber-400 text-3xl transition-colors"
+              onClick={() => setSelectedImage(null)}
+            >
+              &times;
+            </button>
+            <div className="bg-white p-2 rounded-2xl shadow-2xl relative">
+              <img 
+                src={selectedImage.src} 
+                alt={selectedImage.title} 
+                className="w-full max-h-[75vh] object-contain rounded-xl"
+              />
+              <div className="absolute bottom-6 left-6 right-6 p-4 bg-white/90 backdrop-blur-md rounded-xl shadow-lg flex justify-between items-center">
+                <div>
+                  <h3 className="text-2xl font-bold text-[#4C1A57]">{selectedImage.title}</h3>
+                  <p className="text-gray-500 font-medium mt-1">{selectedImage.category}</p>
+                </div>
+                <button className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center text-[#4C1A57] hover:bg-amber-400 transition-colors shadow-sm">
+                  <FaPlay className="ml-1" />
+                </button>
               </div>
             </div>
           </div>
         </div>
-      </section>
+      )}
     </div>
   );
-};
+}
 
 export default Gallery;

@@ -3,38 +3,45 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-purple-600 text-white p-6 md:p-10">
-      <div className="container mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        <div>
-          <h5 className="font-bold mb-2">Curriculum</h5>
-          <p>SEBA & ASHEC</p>
-        </div>
-        <div>
-          <h5 className="font-bold mb-2">Board</h5>
-          <p>Diocese of Dibrugarh</p>
-          <a>
-            <p>FWHC+Q69, Dibrugarh, Assam 786001</p>
-          </a>
-        </div>
-        <div>
-          <h5 className="font-bold mb-2">School Address</h5>
-          <p>XMH8+GGW, Nazira Ali Rd, Hatimuria, Assam 785697</p>
-          <p className="mt-2">Office Timing</p>
-          <p>9am - 1:30pm (Monday - Saturday)</p>
-        </div>
-        <div>
-          <h5 className="font-bold mb-2">Quick Links</h5>
-          {/* Add links here */}
-        </div>
-        <div>
-          <h5 className="font-bold mb-2">Developed by Lencho Solutions</h5>
-          <p>
-            Copyright @{" "}
-            <a className="text-red-300" href="https://www.LenchoSolutions.com" target="_blank" rel="noopener noreferrer">
-              Lencho Solutions
-            </a>
+    <footer className="w-full bg-[#f6f2ff] dark:bg-slate-900 border-t border-purple-100 dark:border-slate-800">
+      <div className="flex flex-col md:flex-row justify-between items-center px-8 py-12 w-full max-w-7xl mx-auto gap-8">
+        <div className="flex flex-col items-center md:items-start gap-3">
+          <div className="font-['Noto_Serif'] font-bold text-[#500088] dark:text-purple-300 text-xl text-center md:text-left">
+            Holy Name Senior Secondary School
+          </div>
+          <p className="text-slate-500 text-xs tracking-wider text-center md:text-left">
+            XMH8+GGW, Nazira Ali Rd, Hatimuria, Assam 785697<br/>
+            Office Timing: 9am - 1:30pm (Mon - Sat)
           </p>
         </div>
+        <div className="flex flex-col items-center md:items-start gap-2">
+          <h5 className="font-bold text-sm text-[#500088] uppercase tracking-wider">Curriculum & Board</h5>
+          <p className="text-slate-500 text-sm">SEBA & ASHEC</p>
+          <p className="text-slate-500 text-sm">Diocese of Dibrugarh</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-6">
+          <Link to="/gallery" className="text-slate-500 dark:text-slate-400 text-sm font-['Manrope'] tracking-wide hover:text-[#500088] dark:hover:text-purple-300 transition-colors">Gallery</Link>
+          <Link to="/career" className="text-slate-500 dark:text-slate-400 text-sm font-['Manrope'] tracking-wide hover:text-[#500088] dark:hover:text-purple-300 transition-colors">Career</Link>
+          <Link to="/complaints" className="text-slate-500 dark:text-slate-400 text-sm font-['Manrope'] tracking-wide hover:text-[#500088] dark:hover:text-purple-300 transition-colors">Suggestions</Link>
+          <Link to="/contact" className="text-slate-500 dark:text-slate-400 text-sm font-['Manrope'] tracking-wide hover:text-[#500088] dark:hover:text-purple-300 transition-colors">Contact</Link>
+        </div>
+        <div className="flex gap-4">
+          <a href="#" className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform cursor-pointer">
+            <span className="material-symbols-outlined text-lg">public</span>
+          </a>
+          <a href="#" className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary shadow-sm hover:scale-110 transition-transform cursor-pointer">
+            <span className="material-symbols-outlined text-lg">mail</span>
+          </a>
+        </div>
+      </div>
+      <div className="w-full py-6 text-center text-[10px] text-slate-400 font-medium tracking-widest uppercase border-t border-purple-50 flex flex-col items-center gap-2">
+        <span>© 2026 Holy Name Senior Secondary School, Sivasagar. All Rights Reserved.</span>
+        <span>
+          Developed by{" "}
+          <a className="text-primary hover:underline" href="https://www.LenchoSolutions.com" target="_blank" rel="noopener noreferrer">
+            Lencho Solutions
+          </a>
+        </span>
       </div>
     </footer>
   );
