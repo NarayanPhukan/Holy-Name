@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { FaImages, FaPlay, FaSearchPlus } from "react-icons/fa";
+import { SiteDataContext } from "../context/SiteDataContext";
 
 function Gallery() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -7,71 +8,7 @@ function Gallery() {
 
   const categories = ["All", "Campus Life", "Academic Events", "Sports", "Cultural Programs"];
 
-  const galleryItems = [
-    {
-      id: 1,
-      category: "Academic Events",
-      title: "Science Exhibition 2023",
-      src: "https://images.unsplash.com/photo-1564069114553-7215e1ff1890?w=800&auto=format&fit=crop&q=60",
-      featured: true,
-    },
-    {
-      id: 2,
-      category: "Sports",
-      title: "Annual Sports Day",
-      src: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=60",
-      featured: false,
-    },
-    {
-      id: 3,
-      category: "Campus Life",
-      title: "Morning Assembly",
-      src: "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&auto=format&fit=crop&q=60",
-      featured: true,
-    },
-    {
-      id: 4,
-      category: "Cultural Programs",
-      title: "Foundation Day Celebration",
-      src: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=60",
-      featured: false,
-    },
-    {
-      id: 5,
-      category: "Academic Events",
-      title: "Inter-School Debate",
-      src: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop&q=60",
-      featured: false,
-    },
-    {
-      id: 6,
-      category: "Campus Life",
-      title: "Library Reading Session",
-      src: "https://images.unsplash.com/photo-1568667256549-094345857637?w=800&auto=format&fit=crop&q=60",
-      featured: false,
-    },
-    {
-      id: 7,
-      category: "Sports",
-      title: "Basketball Tournament",
-      src: "https://images.unsplash.com/photo-1519861531473-9200262188bf?w=800&auto=format&fit=crop&q=60",
-      featured: true,
-    },
-    {
-      id: 8,
-      category: "Cultural Programs",
-      title: "Art & Craft Workshop",
-      src: "https://images.unsplash.com/photo-1460518451285-97b6aa326961?w=800&auto=format&fit=crop&q=60",
-      featured: false,
-    },
-    {
-      id: 9,
-      category: "Campus Life",
-      title: "Computer Lab Session",
-      src: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=60",
-      featured: false,
-    },
-  ];
+  const { gallery: galleryItems } = useContext(SiteDataContext);
 
   const filteredItems = activeCategory === "All" 
     ? galleryItems 
@@ -164,14 +101,19 @@ function Gallery() {
                 alt={selectedImage.title} 
                 className="w-full max-h-[75vh] object-contain rounded-xl"
               />
-              <div className="absolute bottom-6 left-6 right-6 p-4 bg-white/90 backdrop-blur-md rounded-xl shadow-lg flex justify-between items-center">
-                <div>
-                  <h3 className="text-2xl font-bold text-[#4C1A57]">{selectedImage.title}</h3>
-                  <p className="text-gray-500 font-medium mt-1">{selectedImage.category}</p>
+              <div className="absolute bottom-6 left-6 right-6 p-4 md:p-6 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="px-2 py-0.5 bg-[#4C1A57] text-white text-[10px] font-bold rounded uppercase tracking-wider">{selectedImage.category}</span>
+                    <h3 className="text-xl md:text-2xl font-serif font-bold text-[#4C1A57]">{selectedImage.title}</h3>
+                  </div>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">{selectedImage.description || "Captured moment at Holy Name School."}</p>
                 </div>
-                <button className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center text-[#4C1A57] hover:bg-amber-400 transition-colors shadow-sm">
-                  <FaPlay className="ml-1" />
-                </button>
+                <div className="flex gap-3 w-full md:w-auto">
+                  <button className="flex-1 md:flex-none px-6 py-3 bg-amber-500 text-[#4C1A57] font-bold rounded-xl hover:bg-amber-400 transition-all shadow-sm flex items-center justify-center gap-2">
+                    <FaSearchPlus /> Zoom
+                  </button>
+                </div>
               </div>
             </div>
           </div>

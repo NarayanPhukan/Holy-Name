@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { FaChevronLeft, FaChevronRight, FaGraduationCap, FaUserTie } from "react-icons/fa";
+import { SiteDataContext } from "../context/SiteDataContext";
 
 function Faculty() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -37,32 +38,7 @@ function Faculty() {
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
-  const facultyData = {
-    Guest: [
-      { name: "John Doe", title: "Visiting Professor", EduQua: "PhD", Subject: "Guest Lectures", photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop" },
-    ],
-    Science: [
-      { name: "Mrs. Dristiraj Das", title: "6+ yrs exp", EduQua: "MSc Physics", Subject: "Physics", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mr. Dipankar Kayshap", title: "7+ yrs exp", EduQua: "MSc", Subject: "Science/Chemistry", photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Rajashree Chutia", title: "6+ yrs exp", EduQua: "MCA", Subject: "Computer", photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=300&auto=format&fit=crop" },
-      { name: "Miss. Anamika Borgohain", title: "15+ yrs exp", EduQua: "MSc [Geology], B.Ed", Subject: "EVS", photo: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mr. Bhaskar Gogoi", title: "10+ yrs exp", EduQua: "MSc [Mathematics]", Subject: "Adv. Maths", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Junmoni Gogoi", title: "10+ yrs exp", EduQua: "BSc, MSc [Physics]", Subject: "G.Maths, Physics", photo: "https://images.unsplash.com/photo-1598550874175-4d0ef436c909?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Pompy Borah", title: "10+ yrs exp", EduQua: "MSc [Zoology], B.Ed", Subject: "Zoology", photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Minakshi Konwar", title: "5+ yrs exp", EduQua: "MSc Biotechnology", Subject: "Botany", photo: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=300&auto=format&fit=crop" },
-    ],
-    Arts: [
-      { name: "Mrs. Labhinaa Chutia", title: "6+ yrs exp", EduQua: "MA", Subject: "Geography", photo: "https://images.unsplash.com/photo-1548142813-c348350df52b?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Binita Borah Mahanata", title: "20+ yrs exp", EduQua: "MA [Education]", Subject: "Education", photo: "https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mr. Debeswar Gogoi", title: "12+ yrs exp", EduQua: "BA, MA [History]", Subject: "History", photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mr. Tapan Kr. Sharma", title: "25+ yrs exp", EduQua: "MA [English], B.Ed", Subject: "English", photo: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mr. Lakshyajyoti Mohan", title: "1+ yrs exp", EduQua: "MA Assamese, B.Ed", Subject: "Assamese", photo: "https://images.unsplash.com/photo-1552058544-f2b08422138a?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Sangeeta Chetia", title: "15+ yrs exp", EduQua: "MA [Economics], B.Ed", Subject: "Economics", photo: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Chanchal Sharma", title: "10+ yrs exp", EduQua: "MA[Pol.science], M.Phil, B.Ed", Subject: "Pol.Science", photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Jonali Saikia Boruah", title: "10+ yrs exp", EduQua: "MA [Assamese]", Subject: "Assamese", photo: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=300&auto=format&fit=crop" },
-      { name: "Mrs. Sarita Pandey", title: "15+ yrs exp", EduQua: "MA [Hindi], B.Ed", Subject: "Hindi", photo: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?q=80&w=300&auto=format&fit=crop" },
-    ],
-  };
+  const { faculty: facultyData } = useContext(SiteDataContext);
 
   const FacultyCard = ({ member }) => (
     <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col items-center text-center relative overflow-hidden">

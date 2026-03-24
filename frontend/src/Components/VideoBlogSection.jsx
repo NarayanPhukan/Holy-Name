@@ -1,12 +1,31 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { SiteDataContext } from '../context/SiteDataContext';
 
-const videos = [
-  { src: 'src/assets/video.mp4', title: 'Aerial View' },
-  { src: 'video2.mp4', title: 'School Overview' },
-  // Additional videos can be added here
-];
+
 
 const VideoCard = ({ src, title }) => {
+  const getYouTubeEmbedUrl = (url) => {
+    if (!url) return '';
+    try {
+      let videoId = '';
+      if (url.includes('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1].split('?')[0];
+      } else if (url.includes('youtube.com/watch')) {
+        const urlParams = new URLSearchParams(new URL(url).search);
+        videoId = urlParams.get('v');
+      } else if (url.includes('youtube.com/embed/')) {
+        videoId = url.split('youtube.com/embed/')[1].split('?')[0];
+      } else {
+         return url;
+      }
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+    } catch (e) {
+      return url;
+    }
+  };
+
+  const embedUrl = getYouTubeEmbedUrl(src);
+
   const cardStyle = {
     border: '2px solid rgb(59 130 246)',
     padding: '10px',
@@ -43,13 +62,19 @@ const VideoCard = ({ src, title }) => {
   return (
     <div
       style={cardStyle}
-      onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+      className="hover:scale-105 transition-transform duration-200"
     >
       <div style={videoStyle}>
-        <video src={src} width="100%" height="200px" controls autoPlay loop muted>
-          Your browser does not support the video tag.
-        </video>
+        <iframe 
+          src={embedUrl}
+          width="100%" 
+          height="200px" 
+          frameBorder="0" 
+          allow="autoplay; encrypted-media" 
+          allowFullScreen 
+          title={title}
+          style={{ borderRadius: '4px' }}
+        ></iframe>
       </div>
       <div style={titleStyle}>{title}</div>
     </div>
@@ -57,6 +82,7 @@ const VideoCard = ({ src, title }) => {
 };
 
 const VideoBlogSection = () => {
+  const { videos } = useContext(SiteDataContext);
   const sectionStyle = {
     textAlign: 'center',
     padding: '40px 20px',

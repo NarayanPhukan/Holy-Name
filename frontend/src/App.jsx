@@ -25,6 +25,8 @@ import {
 import Layout from "./Layout";
 import "./App.css";
 import AdminLogin from "./Components/AdminLogin";
+import AdminPage from "./Components/AdminPage";
+import { SiteDataProvider } from "./context/SiteDataContext";
 
 function App() {
   const router = createBrowserRouter(
@@ -47,10 +49,15 @@ function App() {
         <Route path="belowsocialbtn" element={<BelowSocialbtn />} />
         <Route path="adminLogin" element={<AdminLogin />} />
         <Route path="signup" element={<AdminSignUp />} />
+        <Route path="admin" element={<AdminPage />} />
       </Route>,
     ),
   );
-  return <RouterProvider router={router} />;
+  return (
+    <SiteDataProvider>
+      <RouterProvider router={router} />
+    </SiteDataProvider>
+  );
 }
 
 export default App;

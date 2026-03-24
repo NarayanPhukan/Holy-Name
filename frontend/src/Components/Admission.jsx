@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { FaLaptop, FaBuilding, FaClipboardList, FaGraduationCap, FaPhoneAlt, FaEnvelope } from "react-icons/fa";
+import axios from "axios";
+import { FaLaptop, FaBuilding, FaClipboardList, FaGraduationCap, FaPhoneAlt, FaEnvelope, FaCheckCircle } from "react-icons/fa";
 
 function Admission() {
   const steps = [
@@ -10,6 +11,54 @@ function Admission() {
     { title: "Final Results", desc: "Selection is based on the assessment and interview performance." },
     { title: "Admission Confirmation", desc: "Submit the required documents and complete the fee payment." },
   ];
+
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const form = e.target;
+    const formData = new FormData();
+    formData.append('studentName', form.querySelector('[placeholder="Enter full name"]')?.value || '');
+    formData.append('dateOfBirth', form.querySelector('[type="date"]')?.value || '');
+    formData.append('placeOfBirth', form.querySelector('[placeholder="Enter place of birth"]')?.value || '');
+    formData.append('gender', form.querySelector('select[required]')?.value || '');
+    formData.append('nationality', form.querySelector('[placeholder="Enter nationality"]')?.value || '');
+    formData.append('religion', form.querySelector('[placeholder="Enter religion"]')?.value || '');
+    formData.append('previousSchool', form.querySelector('[placeholder="School name (if any)"]')?.value || '');
+    formData.append('gradeApplied', form.querySelectorAll('select[required]')[1]?.value || '');
+    formData.append('fatherName', form.querySelector('[placeholder="Enter father\'s name"]')?.value || '');
+    formData.append('fatherOccupation', form.querySelector('[placeholder="Enter father\'s occupation"]')?.value || '');
+    formData.append('motherName', form.querySelector('[placeholder="Enter mother\'s name"]')?.value || '');
+    formData.append('motherOccupation', form.querySelector('[placeholder="Enter mother\'s occupation"]')?.value || '');
+    formData.append('guardianName', form.querySelector('[placeholder="Enter guardian\'s name"]')?.value || '');
+    formData.append('relationship', form.querySelector('[placeholder="e.g. Father, Mother"]')?.value || '');
+    formData.append('contactNumber', form.querySelector('[type="tel"]')?.value || '');
+    formData.append('email', form.querySelector('[type="email"]')?.value || '');
+    formData.append('address', form.querySelector('textarea')?.value || '');
+
+    // File uploads
+    const fileInputs = form.querySelectorAll('[type="file"]');
+    if (fileInputs[0]?.files[0]) formData.append('transferCertificate', fileInputs[0].files[0]);
+    if (fileInputs[1]?.files[0]) formData.append('marksheet', fileInputs[1].files[0]);
+
+    try {
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+      await axios.post(`${apiBase}/admissions`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setSubmitted(true);
+      window.scrollTo({ top: document.getElementById('apply').offsetTop - 100, behavior: 'smooth' });
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Submission failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
@@ -72,7 +121,7 @@ function Admission() {
               </li>
               <li className="flex items-start">
                 <span className="text-blue-500 mr-2">✓</span>
-                Upload digital copies of required documents (Birth Certificate, previous records).
+                Upload digital copies of required documents (Birth Certificate, TC, and Marksheets).
               </li>
               <li className="flex items-start">
                 <span className="text-blue-500 mr-2">✓</span>
@@ -116,6 +165,166 @@ function Admission() {
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* Application Form */}
+        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12 border border-gray-100" id="apply">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#4C1A57]">Apply Now</h2>
+            <div className="h-1 w-24 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+            <p className="mt-4 text-gray-600">Fill out the form below to initiate the admission process.</p>
+          </div>
+
+          {!submitted ? (
+            <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Student's Full Name *</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter full name" required />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Date of Birth *</label>
+                <input type="date" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" required />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Place of Birth</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter place of birth" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Gender *</label>
+                <select className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" required>
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Blood Group</label>
+                <select className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors">
+                  <option value="">Select Blood Group</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Nationality *</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter nationality" required />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Religion</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter religion" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Previous School Attended</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="School name (if any)" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Grade/Class Applied For *</label>
+                <select className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" required>
+                  <option value="">Select Grade</option>
+                  <option value="nursery">Nursery</option>
+                  <option value="lkg">LKG</option>
+                  <option value="ukg">UKG</option>
+                  <option value="class1">Class I</option>
+                  <option value="class2">Class II</option>
+                  <option value="class3">Class III</option>
+                  <option value="class4">Class IV</option>
+                  <option value="class5">Class V</option>
+                  <option value="class6">Class VI</option>
+                  <option value="class7">Class VII</option>
+                  <option value="class8">Class VIII</option>
+                  <option value="class9">Class IX</option>
+                  <option value="class10">Class X</option>
+                </select>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-serif font-bold text-[#4C1A57] mt-8 mb-4 border-b pb-2">Parent/Guardian Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Father's Name</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter father's name" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Father's Occupation</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter father's occupation" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Mother's Name</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter mother's name" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Mother's Occupation</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter mother's occupation" />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Guardian's Full Name *</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter guardian's name" required />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Relationship to Student *</label>
+                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="e.g. Father, Mother" required />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Contact Number *</label>
+                <input type="tel" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter phone number" required />
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Email Address *</label>
+                <input type="email" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter email address" required />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-medium mb-2">Residential Address *</label>
+              <textarea className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" rows="3" placeholder="Enter full address" required></textarea>
+            </div>
+
+            <h3 className="text-xl font-serif font-bold text-[#4C1A57] mt-8 mb-4 border-b pb-2">Documents to Upload</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Transfer Certificate (Previous School) *</label>
+                <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="w-full px-4 py-[9px] rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors bg-white" required />
+                <p className="text-xs text-gray-500 mt-1">PDF, JPG, or PNG (Max 5MB)</p>
+              </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">Marksheet of Previous Class *</label>
+                <input type="file" accept=".pdf,.jpg,.jpeg,.png" className="w-full px-4 py-[9px] rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors bg-white" required />
+                <p className="text-xs text-gray-500 mt-1">PDF, JPG, or PNG (Max 5MB)</p>
+              </div>
+            </div>
+
+            <div className="text-center pt-6">
+              <button type="submit" className="bg-[#4C1A57] text-white font-bold px-10 py-4 rounded-full hover:bg-opacity-90 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 text-lg">
+                Submit Application
+              </button>
+            </div>
+          </form>
+          ) : (
+            <div className="max-w-2xl mx-auto text-center py-10 animate-fade-in">
+              <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+                <FaCheckCircle />
+              </div>
+              <h3 className="text-3xl font-serif font-bold text-[#4C1A57] mb-4">Application Submitted!</h3>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Thank you for applying to Holy Name School. Your application has been successfully received. 
+                Our admissions team will review your details and contact you via email regarding the next steps and entrance assessment schedule.
+              </p>
+              <button 
+                onClick={() => setSubmitted(false)}
+                className="text-[#4C1A57] font-bold hover:underline"
+              >
+                Submit another application
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Info & CTA */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from "axios";
 import { FaUserCircle, FaLock, FaEnvelope, FaExclamationCircle } from "react-icons/fa";
 
@@ -9,6 +9,7 @@ function AdminLogin() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState(null);
+  const navigate = useNavigate();
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -21,18 +22,15 @@ function AdminLogin() {
       return;
     }
 
-    axios
-      .post("https://example.com/api/login", {
-        // your api
-        username,
-        password,
-      })
-      .then((response) => {
-        setToken(response.data.token);
+    const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+    axios.post(`${apiBase}/auth/login`, { email: username, password })
+      .then((res) => {
+        localStorage.setItem('adminToken', res.data.token);
+        setToken(res.data.token);
         setLoading(false);
       })
-      .catch((error) => {
-        setError(error.message);
+      .catch((err) => {
+        setError(err.response?.data?.message || 'Login failed. Please try again.');
         setLoading(false);
       });
   };
@@ -40,8 +38,9 @@ function AdminLogin() {
   useEffect(() => {
     if (token) {
       console.log("Login successful");
+      navigate('/admin');
     }
-  }, [token]);
+  }, [token, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] font-sans relative overflow-hidden">
