@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
 
 const connectDB = async () => {
+  // Fix for querySrv ECONNREFUSED on Windows: Force use of Google DNS
+  try {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+  } catch (e) {
+    console.warn('DNS setServers failed, continuing with default resolver...');
+  }
+
   try {
     const uri = process.env.MONGO_URI;
     if (!uri) {
