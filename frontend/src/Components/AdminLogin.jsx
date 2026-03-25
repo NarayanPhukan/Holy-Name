@@ -26,11 +26,17 @@ function AdminLogin() {
     axios.post(`${apiBase}/auth/login`, { email: username, password })
       .then((res) => {
         if (res.data.token && res.data.admin) {
-          localStorage.setItem('adminToken', res.data.token);
-          localStorage.setItem('adminData', JSON.stringify(res.data.admin));
-          setToken(res.data.token);
+          // Robustly handle cases where res.data.admin might be "undefined" or null
+          const adminDataStr = JSON.stringify(res.data.admin);
+          if (adminDataStr && adminDataStr !== "undefined") {
+            localStorage.setItem('adminToken', res.data.token);
+            localStorage.setItem('adminData', adminDataStr);
+            setToken(res.data.token);
+          } else {
+            throw new Error('Server returned invalid user data object');
+          }
         } else {
-          throw new Error('Invalid server response: Missing user data');
+          throw new Error('Invalid server response: Missing required session fields');
         }
         setLoading(false);
       })

@@ -13,29 +13,47 @@ function AdminPage() {
   const [admins, setAdmins] = useState([]);
 
   useEffect(() => {
-    const data = localStorage.getItem('adminData');
-    const token = localStorage.getItem('adminToken');
-    if (data && token && data !== "undefined" && data !== "null") {
+    const restoreSession = () => {
       try {
-        setAdminUser(JSON.parse(data));
-      } catch (err) {
-        console.error("Session data corrupted:", err);
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminData');
-        window.location.href = '/adminLogin';
-      }
-      // Optional: Verify token with backend
-      fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(res => {
-          if (!res.ok) {
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('adminData');
-            window.location.href = '/adminLogin';
+        const data = localStorage.getItem('adminData');
+        const token = localStorage.getItem('adminToken');
+
+        // Defensive check: Ensure both pieces of data exist and aren't literal error strings
+        if (data && token && data !== "undefined" && data !== "null" && token !== "undefined") {
+          const parsed = JSON.parse(data);
+          
+          // Verify it's a valid object
+          if (parsed && typeof parsed === 'object') {
+            setAdminUser(parsed);
+            
+            // Re-verify token validity with backend in the background
+            fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+              .then(res => {
+                if (!res.ok) {
+                  console.warn("Session expired on server");
+                  handleLogout();
+                }
+              })
+              .catch(err => console.warn('Auth check skipped (offline/server down):', err.message));
+          } else {
+            throw new Error("Invalid session data structure");
           }
-        })
-        .catch(() => console.warn('Auth verification failed, using offline session'));
-    }
+        }
+      } catch (err) {
+        console.error("Critical session restoration failure:", err.message);
+        handleLogout();
+      }
+    };
+
+    restoreSession();
   }, [API_URL]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminData');
+    setAdminUser(null);
+    window.location.href = '/adminLogin';
+  };
 
   // --- Fetch real admission applications ---
   const [applications, setApplications] = useState([]);
@@ -915,11 +933,7 @@ function AdminPage() {
             <FaSignOutAlt className="mr-3 text-lg" /> Return to Website
           </NavLink>
           <button 
-            onClick={() => {
-              localStorage.removeItem('adminToken');
-              localStorage.removeItem('adminData');
-              window.location.href = '/';
-            }}
+            onClick={handleLogout}
             className="flex items-center w-full px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors text-sm font-bold"
           >
             <FaSignOutAlt className="mr-3 text-lg" /> Logout Session
