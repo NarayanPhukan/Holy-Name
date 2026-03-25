@@ -29,7 +29,7 @@ const defaultPrincipal = {
   introQuote: "Flowers leave part of their fragrance in the hand that bestows them",
   message: "Holy Name HS School, Cherekapar Sivasagar...",
   closingQuote: "Aristotle once said, \"Educating the mind without educating the heart is no education at all.\"",
-  photo: "/Pictures/picturesoftheweb/Fr Hemanta Pegu.JPG",
+  photo: "",
   signature: "https://via.placeholder.com/150x50",
 };
 

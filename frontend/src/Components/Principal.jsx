@@ -24,14 +24,16 @@ function Principal() {
         </p>
         
         <div className="flex flex-col items-center">
-          <div className="relative mb-10 group">
-            <div className="absolute inset-0 bg-primary rounded-3xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300"></div>
-            <img
-              src={principal.photo}
-              alt={principal.name}
-              className="relative w-80 h-auto rounded-3xl shadow-xl transition-transform duration-300 group-hover:-translate-y-2 border-4 border-white"
-            />
-          </div>
+          {principal.photo && (
+            <div className="relative mb-10 group">
+              <div className="absolute inset-0 bg-primary rounded-3xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300"></div>
+              <img
+                src={principal.photo}
+                alt={principal.name}
+                className="relative w-80 h-auto rounded-3xl shadow-xl transition-transform duration-300 group-hover:-translate-y-2 border-4 border-white"
+              />
+            </div>
+          )}
 
           <div className="space-y-6 text-on-surface-variant leading-relaxed text-lg text-justify md:text-left font-medium">
             {principal.message.split('\n').filter(p => p.trim() !== '').map((paragraph, index) => (

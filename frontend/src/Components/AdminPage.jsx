@@ -9,15 +9,21 @@ function AdminPage() {
 
   // --- Fetch real admission applications ---
   const [applications, setApplications] = useState([]);
+  const [selectedApp, setSelectedApp] = useState(null); // For "View" modal
+
+  const fetchApps = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`${API_URL}/admissions`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) setApplications(await res.json());
+    } catch (e) { console.warn('Could not fetch applications'); }
+  };
+
   useEffect(() => {
-    const fetchApps = async () => {
-      try {
-        const token = localStorage.getItem('adminToken');
-        const res = await fetch(`${API_URL}/admissions`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) setApplications(await res.json());
-      } catch (e) { console.warn('Could not fetch applications'); }
-    };
     fetchApps();
+    // Live changes: poll every 30 seconds
+    const interval = setInterval(fetchApps, 30000);
+    return () => clearInterval(interval);
   }, [API_URL]);
 
   const handleStatusUpdate = async (id, newStatus) => {
@@ -33,6 +39,10 @@ function AdminPage() {
       });
       if (res.ok) {
         setApplications(apps => apps.map(app => app._id === id ? { ...app, status: newStatus } : app));
+        // Update selectedApp if it's the one being modified
+        if (selectedApp?._id === id) {
+          setSelectedApp(prev => ({ ...prev, status: newStatus }));
+        }
       } else {
         alert('Failed to update status');
       }
@@ -454,7 +464,7 @@ function AdminPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-blue-600 hover:text-blue-800 font-medium text-sm mr-3">View</button>
+                    <button onClick={() => setSelectedApp(app.originalApp)} className="text-blue-600 hover:text-blue-800 font-medium text-sm mr-3">View</button>
                     {app.status === 'Pending' && (
                       <>
                         <button onClick={() => handleStatusUpdate(app.originalApp._id, 'accepted')} className="text-green-600 hover:text-green-800 font-medium text-sm mr-3">Approve</button>
@@ -601,6 +611,7 @@ function AdminPage() {
                             }`}>{app.status}</span>
                           </td>
                           <td className="py-3 text-right">
+                            <button onClick={() => setSelectedApp(app)} className="text-blue-600 hover:text-blue-800 font-medium text-sm mr-3">View</button>
                             {app.status === 'pending' && (
                               <>
                                 <button onClick={() => handleStatusUpdate(app._id, 'accepted')} className="text-green-600 hover:text-green-800 font-medium text-sm mr-3">Approve</button>
@@ -623,6 +634,111 @@ function AdminPage() {
             </div>
           )}
         </main>
+
+        {/* --- Application View Modal --- */}
+        {selectedApp && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
+              <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">Student Application Details</h2>
+                  <p className="text-sm text-gray-500">App ID: {selectedApp._id.slice(-6).toUpperCase()}</p>
+                </div>
+                <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+                  <FaPlus className="rotate-45 text-2xl" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+                  <div className="col-span-1 border-r border-gray-100 pr-4">
+                    <h4 className="text-xs uppercase font-bold text-gray-400 mb-3 tracking-widest">Personal Information</h4>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Name:</span> <span className="text-gray-900 font-medium block text-lg">{selectedApp.studentName}</span></p>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Grade Applied:</span> <span className="font-medium uppercase text-sm bg-blue-50 text-blue-700 px-2 py-1 rounded inline-block mt-1">{selectedApp.gradeApplied}</span></p>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">DOB:</span> <span className="text-gray-900 block">{selectedApp.dateOfBirth}</span></p>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Gender:</span> <span className="text-gray-900 block">{selectedApp.gender}</span></p>
+                  </div>
+                  <div className="col-span-1 border-r border-gray-100 pr-4">
+                    <h4 className="text-xs uppercase font-bold text-gray-400 mb-3 tracking-widest">Parent/Guardian</h4>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Guardian:</span> <span className="text-gray-900 block">{selectedApp.guardianName} ({selectedApp.relationship})</span></p>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Father:</span> <span className="text-gray-900 block">{selectedApp.fatherName}</span></p>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Mother:</span> <span className="text-gray-900 block">{selectedApp.motherName}</span></p>
+                  </div>
+                  <div className="col-span-1">
+                    <h4 className="text-xs uppercase font-bold text-gray-400 mb-3 tracking-widest">Contact Info</h4>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Phone:</span> <span className="text-gray-900 block font-bold text-lg">{selectedApp.contactNumber}</span></p>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Email:</span> <span className="text-gray-900 block break-words">{selectedApp.email}</span></p>
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Address:</span> <span className="text-gray-900 block text-xs leading-relaxed">{selectedApp.address}</span></p>
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-10">
+                  <h4 className="text-xs uppercase font-bold text-gray-400 mb-4 tracking-widest">Academic Background</h4>
+                  <p><span className="font-semibold text-gray-600">Previous School:</span> <span className="text-gray-900">{selectedApp.previousSchool || 'N/A'}</span></p>
+                </div>
+
+                <div>
+                  <h4 className="text-xs uppercase font-bold text-gray-400 mb-4 tracking-widest">Documents Provided</h4>
+                  <div className="flex flex-wrap gap-4">
+                    {selectedApp.transferCertificate ? (
+                      <a href={selectedApp.transferCertificate} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 hover:border-amber-500 hover:shadow-md transition-all group">
+                        <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                          <FaClipboardList />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Transfer Certificate</p>
+                          <p className="text-xs text-gray-500">Click to view file</p>
+                        </div>
+                      </a>
+                    ) : <p className="text-sm text-gray-400 italic">No TC provided</p>}
+                    
+                    {selectedApp.marksheet ? (
+                      <a href={selectedApp.marksheet} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 hover:border-amber-500 hover:shadow-md transition-all group">
+                        <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                          <FaClipboardList />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Marksheet / Report Card</p>
+                          <p className="text-xs text-gray-500">Click to view file</p>
+                        </div>
+                      </a>
+                    ) : <p className="text-sm text-gray-400 italic">No Marksheet provided</p>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-gray-50 border-t flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 uppercase font-bold">Status:</span>
+                  <span className={`px-4 py-1.5 rounded-full text-sm font-black ${
+                    selectedApp.status === 'accepted' ? 'bg-green-100 text-green-700' :
+                    selectedApp.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>
+                    {selectedApp.status.toUpperCase()}
+                  </span>
+                </div>
+                
+                {selectedApp.status === 'pending' && (
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => handleStatusUpdate(selectedApp._id, 'accepted')}
+                      className="bg-green-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all hover:-translate-y-0.5"
+                    >
+                      Approve Application
+                    </button>
+                    <button 
+                      onClick={() => handleStatusUpdate(selectedApp._id, 'rejected')}
+                      className="bg-red-500 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-600 shadow-lg shadow-red-200 transition-all hover:-translate-y-0.5"
+                    >
+                      Reject Application
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

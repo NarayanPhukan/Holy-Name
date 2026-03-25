@@ -176,7 +176,7 @@ const defaultSiteContent = {
     introQuote: "Flowers leave part of their fragrance in the hand that bestows them",
     message: "Holy Name HS School, Cherekapar Sivasagar, has been renowned not only for its academic excellence but also for its focus on moral and character development.",
     closingQuote: "Aristotle once said, \"Educating the mind without educating the heart is no education at all.\"",
-    photo: "/Pictures/picturesoftheweb/Fr Hemanta Pegu.JPG",
+    photo: "",
     signature: "https://via.placeholder.com/150x50",
   },
 };
