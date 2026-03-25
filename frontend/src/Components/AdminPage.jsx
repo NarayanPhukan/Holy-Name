@@ -6,7 +6,7 @@ import { SiteDataContext } from '../context/SiteDataContext';
 function AdminPage() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { gallery, setGallery, videos, setVideos, highlights, setHighlights, events, setEvents, faculty, setFaculty, principal, setPrincipal, uploadImage, API_URL } = useContext(SiteDataContext);
+  const { gallery, setGallery, videos, setVideos, highlights, setHighlights, events, setEvents, faculty, setFaculty, principal, setPrincipal, notices, setNotices, uploadImage, API_URL } = useContext(SiteDataContext);
 
   // --- Auth & Role ---
   const [adminUser, setAdminUser] = useState(null);
@@ -326,6 +326,74 @@ function AdminPage() {
             <p className="font-bold flex-1">{vid.title}</p>
             <p className="text-xs text-gray-400 truncate w-full text-center mt-1 mb-4">{vid.src}</p>
             <button onClick={() => handleDeleteVideo(vid.src, idx)} className="text-red-500 text-sm hover:underline"><FaTrash className="inline mr-1" /> Remove</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // --- Notices Tab ---
+  const [newNotice, setNewNotice] = useState({ title: '', date: '', size: '', pdfLink: '' });
+  const handleAddNotice = () => {
+    if (!newNotice.title || !newNotice.pdfLink) return;
+    setNotices([{ ...newNotice, id: Date.now() }, ...notices]);
+    setNewNotice({ title: '', date: '', size: '', pdfLink: '' });
+  };
+  const handleDeleteNotice = (id) => {
+    setNotices(notices.filter(item => item.id !== id));
+  };
+  const handlePdfUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const token = localStorage.getItem('adminToken');
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const res = await fetch(`${API_URL}/content/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setNewNotice({
+          ...newNotice,
+          pdfLink: data.url,
+          size: `${(file.size / 1024).toFixed(0)} KB`,
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        });
+      }
+    } catch (err) { console.error('PDF upload failed'); }
+  };
+
+  const renderNoticesTab = () => (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <h3 className="text-xl font-bold text-gray-800 mb-4">Manage PDF Notices</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100 items-end">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Notice Title</label>
+          <input type="text" placeholder="e.g. Summer Vacation 2026" value={newNotice.title} onChange={e => setNewNotice({...newNotice, title: e.target.value})} className="w-full p-2 border rounded-lg" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Upload PDF</label>
+          <input type="file" accept=".pdf" onChange={handlePdfUpload} className="w-full p-[5px] border bg-white rounded-lg text-sm" />
+        </div>
+        <button onClick={handleAddNotice} className="bg-tertiary text-white px-4 py-2 rounded-lg font-bold hover:opacity-90 md:col-span-2 h-[42px]"><FaPlus className="inline mr-2"/> Publish Notice</button>
+      </div>
+      <div className="space-y-3">
+        {notices.map(item => (
+          <div key={item.id} className="flex justify-between items-center p-4 border rounded-xl hover:bg-gray-50 transition-colors">
+            <div className="flex gap-4 items-center">
+              <div className="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center font-bold text-xs uppercase">PDF</div>
+              <div>
+                <p className="font-bold text-sm text-gray-800">{item.title}</p>
+                <p className="text-xs text-gray-500">{item.date} • {item.size}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <a href={item.pdfLink} target="_blank" rel="noreferrer" className="text-primary hover:underline text-xs font-bold">View</a>
+              <button onClick={() => handleDeleteNotice(item.id)} className="text-red-400 hover:text-red-600 p-2"><FaTrash size={14} /></button>
+            </div>
           </div>
         ))}
       </div>
@@ -724,6 +792,7 @@ function AdminPage() {
             { id: 'videos', label: 'Video Blog', icon: <FaVideo /> },
             { id: 'highlights', label: 'Highlights', icon: <FaStar /> },
             { id: 'events', label: 'Events', icon: <FaCalendarAlt /> },
+            { id: 'notices', label: 'Notices', icon: <FaClipboardList /> },
             { id: 'faculty', label: 'Faculty', icon: <FaChalkboardTeacher /> },
             { id: 'principal', label: 'Principal Desk', icon: <FaClipboardList /> }
           ].map(item => (
@@ -771,7 +840,7 @@ function AdminPage() {
             onClick={() => {
               localStorage.removeItem('adminToken');
               localStorage.removeItem('adminData');
-              window.location.reload();
+              window.location.href = '/';
             }}
             className="flex items-center w-full px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors text-sm font-bold"
           >
@@ -809,6 +878,7 @@ function AdminPage() {
           {activeTab === 'videos' && renderVideosTab()}
           {activeTab === 'highlights' && renderHighlightsTab()}
           {activeTab === 'events' && renderEventsTab()}
+          {activeTab === 'notices' && renderNoticesTab()}
           {activeTab === 'faculty' && renderFacultyTab()}
           {activeTab === 'principal' && renderPrincipalTab()}
           {activeTab === 'admins' && adminUser?.role === 'superadmin' && renderAdminsTab()}

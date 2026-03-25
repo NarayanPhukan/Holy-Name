@@ -3,8 +3,42 @@ const multer = require('multer');
 const path = require('path');
 const Admission = require('../models/Admission');
 const { protect } = require('../middleware/auth');
+const nodemailer = require('nodemailer');
 
 const router = express.Router();
+
+// Email Transporter (use Gmail/SMTP settings from .env)
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // or another service like 'outlook', 'sendgrid' etc.
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+const sendSubmissionEmail = async (admissionData) => {
+  try {
+    const mailOptions = {
+      from: `"Holy Name School System" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_RECEIVER || 'office@lenchosolutions.com',
+      subject: 'New Student Admission Application - Holy Name School',
+      html: `
+        <h2>New Admission Application Received</h2>
+        <p><strong>Student Name:</strong> ${admissionData.firstName} ${admissionData.lastName}</p>
+        <p><strong>Class:</strong> ${admissionData.classApplied}</p>
+        <p><strong>Guardian Name:</strong> ${admissionData.guardianName}</p>
+        <p><strong>Contact Email:</strong> ${admissionData.email}</p>
+        <p><strong>Phone:</strong> ${admissionData.phone}</p>
+        <p>You can view the full application in the Admin Panel.</p>
+        <p><a href="${process.env.CLIENT_URL}/admin">Go to Admin Dashboard</a></p>
+      `,
+    };
+    await transporter.sendMail(mailOptions);
+    console.log('Admission alert email sent.');
+  } catch (err) {
+    console.error('Failed to send admission alert email:', err.message);
+  }
+};
 
 // --- Multer config for admission documents ---
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -47,6 +81,10 @@ router.post(
       }
 
       const admission = await Admission.create(data);
+      
+      // Send background email notification
+      sendSubmissionEmail(admission);
+
       res.status(201).json({ message: 'Application submitted successfully', id: admission._id });
     } catch (error) {
       res.status(500).json({ message: 'Submission failed', error: error.message });

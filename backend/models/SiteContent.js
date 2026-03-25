@@ -38,6 +38,15 @@ const siteContentSchema = new mongoose.Schema({
       title: String,
     },
   ],
+  notices: [
+    {
+      id: Number,
+      title: String,
+      date: String,
+      size: String,
+      pdfLink: String,
+    },
+  ],
   faculty: {
     type: mongoose.Schema.Types.Mixed,
     default: {},

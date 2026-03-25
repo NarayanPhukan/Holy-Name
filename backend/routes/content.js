@@ -14,7 +14,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'holyname/content',
-    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp'],
+    allowed_formats: ['jpeg', 'jpg', 'png', 'gif', 'webp', 'pdf'],
   },
 });
 
@@ -46,7 +46,7 @@ router.put('/', protect, async (req, res) => {
       content = await SiteContent.create(updateData);
     } else {
       // Only update fields that are provided
-      const allowedFields = ['gallery', 'events', 'highlights', 'videos', 'faculty', 'principal'];
+      const allowedFields = ['gallery', 'events', 'highlights', 'videos', 'faculty', 'principal', 'notices'];
       allowedFields.forEach((field) => {
         if (updateData[field] !== undefined) {
           content[field] = updateData[field];

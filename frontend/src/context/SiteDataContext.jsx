@@ -33,6 +33,11 @@ const defaultPrincipal = {
   signature: "https://via.placeholder.com/150x50",
 };
 
+const defaultNotices = [
+  { id: 1, title: "Summer Vacation Schedule 2025", date: "May 10, 2025", size: "245 KB", pdfLink: "#" },
+  { id: 2, title: "Annual Sports Meet Guidelines", date: "Jan 15, 2026", size: "1.2 MB", pdfLink: "#" },
+];
+
 export const SiteDataProvider = ({ children }) => {
   const [videos, setVideos] = useState(defaultVideos);
   const [highlights, setHighlights] = useState(defaultHighlights);
@@ -40,6 +45,7 @@ export const SiteDataProvider = ({ children }) => {
   const [events, setEvents] = useState(defaultEvents);
   const [principal, setPrincipal] = useState(defaultPrincipal);
   const [faculty, setFaculty] = useState(defaultFaculty);
+  const [notices, setNotices] = useState(defaultNotices);
   const [loading, setLoading] = useState(true);
 
   // Fetch content from backend on mount and via polling
@@ -51,6 +57,7 @@ export const SiteDataProvider = ({ children }) => {
         if (data.events?.length) setEvents(data.events);
         if (data.highlights?.length) setHighlights(data.highlights);
         if (data.videos?.length) setVideos(data.videos);
+        if (data.notices?.length) setNotices(data.notices);
         if (data.faculty && Object.keys(data.faculty).length) setFaculty(data.faculty);
         if (data.principal?.name) setPrincipal(data.principal);
       } catch (error) {
@@ -87,6 +94,7 @@ export const SiteDataProvider = ({ children }) => {
   const updateVideos = (val) => { setVideos(val); saveToBackend('videos', val); };
   const updateFaculty = (val) => { setFaculty(val); saveToBackend('faculty', val); };
   const updatePrincipal = (val) => { setPrincipal(val); saveToBackend('principal', val); };
+  const updateNotices = (val) => { setNotices(val); saveToBackend('notices', val); };
 
   // Upload image via API, returns the URL
   const uploadImage = async (file) => {
@@ -117,6 +125,7 @@ export const SiteDataProvider = ({ children }) => {
       events, setEvents: updateEvents,
       faculty, setFaculty: updateFaculty,
       principal, setPrincipal: updatePrincipal,
+      notices, setNotices: updateNotices,
       loading,
       uploadImage,
       API_URL,

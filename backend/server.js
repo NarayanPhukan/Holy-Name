@@ -189,15 +189,22 @@ const startServer = async () => {
   await connectDB();
 
   // Seed default admin
-  const adminCount = await Admin.countDocuments();
-  if (adminCount === 0) {
+  // Seed default superadmin if no admins or if this specific account is missing/not superadmin
+  const defaultEmail = 'superadmin@1.com';
+  let defaultAdmin = await Admin.findOne({ email: defaultEmail });
+  
+  if (!defaultAdmin) {
     await Admin.create({
-      email: 'admin@holynameschool.edu',
+      email: defaultEmail,
       password: 'admin123',
-      name: 'School Admin',
+      name: 'Super Admin',
       role: 'superadmin'
     });
-    console.log('🔐 Default Super Admin created: admin@holynameschool.edu / admin123');
+    console.log(`🔐 Default Super Admin created: ${defaultEmail} / admin123`);
+  } else if (defaultAdmin.role !== 'superadmin') {
+    defaultAdmin.role = 'superadmin';
+    await defaultAdmin.save();
+    console.log(`🔐 Elevated ${defaultEmail} to Super Admin`);
   }
 
   // Seed default site content

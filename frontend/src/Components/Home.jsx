@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import Items from "./Items";
 import EventsSection from "./EventsSection";
 import VideoBlogSection from "./VideoBlogSection";
-import ReviewAndFAQ from "./ReviewAndFAQ";
 import HighlightsSection from "./HighlightsSection";
 import { FaWhatsapp, FaInstagram, FaFacebook, FaYoutube } from "react-icons/fa";
 
@@ -266,15 +265,6 @@ function Home() {
 
 
 
-          <motion.section
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.7 }}
-            className="bg-surface-container-low rounded-3xl p-8 md:p-12 border border-outline-variant/30"
-          >
-            <ReviewAndFAQ />
-          </motion.section>
         </div>
       </main>
     </div>
