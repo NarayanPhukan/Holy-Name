@@ -1708,13 +1708,12 @@ function AdminPage() {
         
         let updatedStats;
         if (editingStatId) {
-          updatedStats = currentStats.map(stat => stat.id === editingStatId ? newStatItem : stat);
+          updatedStats = currentStats.map(stat => (stat.id || stat._id) === editingStatId ? newStatItem : stat);
         } else {
           updatedStats = [...currentStats, newStatItem];
         }
         
         await updateSiteContent({ stats: updatedStats });
-        setStats(updatedStats);
         setNewStat({ label: '', value: '', totalCandidates: '', passedCandidates: '' });
         setEditingStatId(null);
       } catch (error) {
@@ -1722,11 +1721,10 @@ function AdminPage() {
       }
     };
 
-    const handleDeleteStat = async (id) => {
+    const handleDeleteStat = async (idToDelete) => {
       try {
-        const updatedStats = (stats || []).filter(s => s.id !== id);
+        const updatedStats = (stats || []).filter(s => (s.id || s._id) !== idToDelete);
         await updateSiteContent({ stats: updatedStats });
-        setStats(updatedStats);
       } catch (error) {
         console.error("Error deleting stat:", error);
       }
@@ -1819,7 +1817,7 @@ function AdminPage() {
                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
                  <button 
                   onClick={() => {
-                    setEditingStatId(stat.id);
+                    setEditingStatId(stat.id || stat._id);
                     // Special handling to parse values if it's "Pass Result"
                     let totalCands = '';
                     let passedCands = '';
@@ -1842,7 +1840,7 @@ function AdminPage() {
                    <FaEdit size={14} />
                  </button>
                  <button 
-                  onClick={() => handleDeleteStat(stat.id)}
+                  onClick={() => handleDeleteStat(stat.id || stat._id)}
                   className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-colors"
                   title="Delete Stat"
                  >

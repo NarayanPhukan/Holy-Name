@@ -76,7 +76,7 @@ const VideoCard = ({ src, title }) => {
             width="100%" 
             height="200px" 
             frameBorder="0" 
-            allow="autoplay; encrypted-media" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; compute-pressure" 
             allowFullScreen 
             title={title}
             style={{ borderRadius: '4px' }}

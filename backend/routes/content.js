@@ -39,24 +39,27 @@ router.get('/', async (req, res) => {
 router.put('/', protect, async (req, res) => {
   try {
     const updateData = req.body;
-    let content = await SiteContent.findOne();
-
-    if (!content) {
-      content = await SiteContent.create(updateData);
-    } else {
     const allowedFields = ['gallery', 'events', 'highlights', 'videos', 'faculty', 'principal', 'notices', 'notificationEmail', 'banner', 'socialLinks', 'alumni', 'stats'];
-      
-      for (const field of allowedFields) {
-        if (updateData[field] !== undefined) {
-          content[field] = updateData[field];
-        }
+    
+    // Pick only allowed fields
+    const safeUpdateData = {};
+    for (const field of allowedFields) {
+      if (updateData[field] !== undefined) {
+        safeUpdateData[field] = updateData[field];
       }
-      await content.save();
     }
+
+    let content = await SiteContent.findOneAndUpdate(
+      {}, // Matches the single site content document
+      { $set: safeUpdateData },
+      { new: true, upsert: true }
+    );
 
     res.json(content);
   } catch (error) {
     console.error('PUT /api/content error:', error.message);
+    const fs = require('fs');
+    fs.writeFileSync('error_log.txt', error.stack + '\n' + JSON.stringify(error.errors || {}));
     if (error.errors) {
       console.error('Validation errors:', JSON.stringify(error.errors, null, 2));
     }

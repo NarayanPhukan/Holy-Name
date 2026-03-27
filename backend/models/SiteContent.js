@@ -95,6 +95,7 @@ const siteContentSchema = new mongoose.Schema({
   },
   stats: [
     {
+      id: String,
       label: String,
       value: String
     }

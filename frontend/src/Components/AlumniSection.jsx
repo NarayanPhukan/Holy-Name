@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useRef, useEffect, useState } from "react";
 import { SiteDataContext } from "../context/SiteDataContext";
 import { FaGraduationCap, FaMedal } from "react-icons/fa";
 
@@ -17,6 +17,32 @@ const AlumniSection = () => {
           .flat()
       : alumni;
   const loopAlumni = [...baseAlumni, ...baseAlumni];
+
+  const scrollRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    let animationFrameId;
+    
+    const autoScroll = () => {
+      // Only scroll if not being hovered/touched
+      if (!isHovered) {
+        scrollContainer.scrollLeft += 1;
+        // Seamless loop horizontally:
+        if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth / 2) {
+          scrollContainer.scrollLeft = 0;
+        }
+      }
+      animationFrameId = requestAnimationFrame(autoScroll);
+    };
+
+    animationFrameId = requestAnimationFrame(autoScroll);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isHovered]);
 
   return (
     <section className="py-16 relative overflow-hidden bg-gradient-to-br from-[#CCFFFF]/35 via-[#CCFFFF]/20 to-[#CCFFFF]/5 border-y border-slate-100 my-10 border-t-4 border-t-primary/40 shadow-[0_-4px_20px_rgba(204,255,255,0.3)]">
@@ -54,8 +80,25 @@ const AlumniSection = () => {
 
       {/* Slider Wrapper */}
       <div className="relative z-10 w-full overflow-hidden flex py-8">
+        <style>{`
+          .hide-scroll::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
         {/* Continuous Slider Track */}
-        <div className="flex animate-marquee w-max select-none hover:[animation-play-state:paused] py-4">
+        <div 
+          ref={scrollRef}
+          className="flex w-full overflow-x-auto hide-scroll py-4"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => setIsHovered(true)}
+          onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)}
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {loopAlumni.map((student, idx) => (
             <div
               key={`${student._id || idx}-${idx}`}
