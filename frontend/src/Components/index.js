@@ -16,5 +16,6 @@ import BelowSocialbtn from './BelowSocialbtn.jsx'
 import AdminLoginBtn from './AdminLoginBtn.jsx'
 import AdminSignUp from './AdminSignUp.jsx'
 import PopupBanner from './PopupBanner.jsx'
+import JobApplicationForm from './JobApplicationForm.jsx'
 
-export {About,Contact,Home,Gallery,Header,Footer,Principal,Courses,Complaints,Admission,Faculty,Notice,Career,StudentPortal,BelowSocialbtn,AdminLoginBtn,AdminSignUp,PopupBanner}
+export {About,Contact,Home,Gallery,Header,Footer,Principal,Courses,Complaints,Admission,Faculty,Notice,Career,StudentPortal,BelowSocialbtn,AdminLoginBtn,AdminSignUp,PopupBanner,JobApplicationForm}

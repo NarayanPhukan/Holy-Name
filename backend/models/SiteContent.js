@@ -31,6 +31,7 @@ const siteContentSchema = new mongoose.Schema({
       category: String,
       image: String,
       description: String,
+      galleryImages: [String],
     },
   ],
   videos: [
@@ -117,23 +118,17 @@ const siteContentSchema = new mongoose.Schema({
     signature: { type: String, default: "https://via.placeholder.com/150x50" }
   },
   schoolProfile: {
-    logo: { type: String, default: "/Pictures/Logo.jpg" },
-    punchLine: { type: String, default: "Let Your Light Shine" },
-    phone: { type: String, default: "6901055733" },
-    email: { type: String, default: "holynameschool@gmail.com" },
-    officeHours: { type: String, default: "9am - 1:30pm (Mon - Sat)" },
-    officeAddress: { type: String, default: "XMH8+GGW, Nazira Ali Rd, Hatimuria, Assam 785697" },
+    name: { type: String, default: "" },
+    logo: { type: String, default: "" },
+    punchLine: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    email: { type: String, default: "" },
+    officeHours: { type: String, default: "" },
+    officeAddress: { type: String, default: "" },
     mapLink: { type: String, default: "" },
     heroImages: {
       type: [String],
-      default: [
-        "/Pictures/1.JPG",
-        "/Pictures/2.JPG",
-        "/Pictures/3.JPG",
-        "/Pictures/4.JPG",
-        "/Pictures/5.JPG",
-        "/Pictures/6.JPG",
-      ]
+      default: []
     }
   }
 }, { timestamps: true });

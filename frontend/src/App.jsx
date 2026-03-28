@@ -21,6 +21,7 @@ import {
   Notice,
   Principal,
   StudentPortal,
+  JobApplicationForm,
 } from "./Components/index";
 import Layout from "./Layout";
 import "./App.css";
@@ -80,6 +81,8 @@ function App() {
         <Route path="faculty" element={<Faculty />} />
         <Route path="notice" element={<Notice />} />
         <Route path="studentportal" element={<StudentPortal />} />
+        <Route path="apply" element={<JobApplicationForm />} />
+        <Route path="apply/:jobId" element={<JobApplicationForm />} />
         <Route path="belowsocialbtn" element={<BelowSocialbtn />} />
       </Route>
 

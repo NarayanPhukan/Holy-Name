@@ -79,7 +79,7 @@ function AdminLogin() {
             <FaUserCircle className="text-5xl text-primary" />
           </div>
           <h1 className="text-3xl font-serif font-bold text-white mb-2">Admin Portal</h1>
-          <p className="text-white/80 font-medium">{schoolProfile?.name || "Holy Name School"}</p>
+          <p className="text-white/80 font-medium">{schoolProfile?.name || "School"}</p>
         </div>
 
         {/* Login Card */}
@@ -104,7 +104,7 @@ function AdminLogin() {
                   <FaEnvelope className="text-gray-400 group-focus-within:text-primary transition-colors" />
                 </div>
                 <input
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                   id="username"
                   type="text"
                   value={username}
@@ -128,7 +128,7 @@ function AdminLogin() {
                   <FaLock className="text-gray-400 group-focus-within:text-primary transition-colors" />
                 </div>
                 <input
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                   id="password"
                   type="password"
                   value={password}
@@ -139,7 +139,7 @@ function AdminLogin() {
             </div>
 
             <button
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center transform hover:-translate-y-1 relative overflow-hidden"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl:shadow-none:shadow-none transition-all flex items-center justify-center transform hover:-translate-y-1 relative overflow-hidden"
               type="submit"
               disabled={loading}
             >
@@ -169,7 +169,7 @@ function AdminLogin() {
         
         {/* Footer info */}
         <p className="text-center text-gray-500 text-sm mt-8">
-          &copy; {new Date().getFullYear()} {schoolProfile?.name || "Holy Name School"}. All rights reserved.
+          &copy; {new Date().getFullYear()} {schoolProfile?.name || "School"}. All rights reserved.
         </p>
       </div>
     </div>

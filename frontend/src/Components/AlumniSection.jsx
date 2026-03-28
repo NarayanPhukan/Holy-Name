@@ -119,7 +119,7 @@ const AlumniSection = () => {
                 <div className="relative mb-3 mt-2 transition-transform duration-500 group-hover:scale-105">
                   <div className="w-20 h-20 rounded-[1.5rem] overflow-hidden border-[4px] border-white shadow-[0_15px_35px_rgba(30,64,175,0.15)] z-10 relative ring-1 ring-primary/10 ring-offset-2 ring-offset-transparent">
                     <img
-                      src={student.photo}
+                      src={student.photo || null}
                       alt={student.name}
                       className="w-full h-full object-cover"
                     />

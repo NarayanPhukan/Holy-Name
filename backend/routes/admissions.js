@@ -47,6 +47,57 @@ const sendSubmissionEmail = async (admissionData) => {
   }
 };
 
+const sendApplicantConfirmationEmail = async (admissionData) => {
+  try {
+    const mailOptions = {
+      from: `"Holy Name School" <${process.env.EMAIL_USER}>`,
+      to: admissionData.email,
+      subject: `Admission Application Received: ${admissionData.referenceNumber}`,
+      html: `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #444; max-width: 600px; margin: auto; border: 1px solid #1e3a8a; padding: 0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+          <div style="background-color: #1e3a8a; color: white; padding: 30px; text-align: center;">
+            <h1 style="margin: 0; font-size: 24px; font-weight: bold; letter-spacing: 1px;">Holy Name High School</h1>
+            <p style="margin: 5px 0 0 0; opacity: 0.9; font-style: italic;">Excellence in Education</p>
+          </div>
+          
+          <div style="padding: 30px; background-color: white;">
+            <h2 style="color: #1e3a8a; margin-top: 0;">Application Received!</h2>
+            <p>Dear Parent/Guardian of <strong>${admissionData.studentName}</strong>,</p>
+            <p>We are pleased to inform you that we have successfully received your admission application for <strong>${admissionData.gradeApplied.toUpperCase()}</strong> at Holy Name High School.</p>
+            
+            <div style="background-color: #eff6ff; border: 1px dashed #3b82f6; padding: 20px; margin: 25px 0; text-align: center; border-radius: 10px;">
+              <p style="margin: 0; font-size: 14px; text-transform: uppercase; color: #1e40af; font-weight: bold; letter-spacing: 1px;">Application Reference Number</p>
+              <p style="margin: 10px 0 0 0; font-size: 32px; color: #1e3a8a; font-weight: 900; font-family: 'Courier New', Courier, monospace;">${admissionData.referenceNumber}</p>
+            </div>
+
+            <h3 style="color: #1e3a8a; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Next Steps:</h3>
+            <ul style="padding-left: 20px;">
+              <li style="margin-bottom: 10px;">Our admissions team will review the submitted documents.</li>
+              <li style="margin-bottom: 10px;">You will receive a notification regarding the entrance test/interview date via email or phone.</li>
+              <li>Please keep a printed copy of your acknowledgement receipt for future verification.</li>
+            </ul>
+            
+            <p style="margin-top: 30px;">If you have any urgent queries, please contact our office at <strong>${process.env.OFFICE_PHONE || 'the school office number'}</strong>.</p>
+            
+            <p style="margin-bottom: 0;">Warm regards,<br/><strong>Admissions Office</strong><br/>Holy Name High School</p>
+          </div>
+          
+          <div style="background-color: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #f1f5f9;">
+            <p style="font-size: 12px; color: #64748b; margin: 0;">
+              This is an automated message. Please do not reply to this email.<br/>
+              &copy; ${new Date().getFullYear()} Holy Name School, Sivasagar.
+            </p>
+          </div>
+        </div>
+      `,
+    };
+    await transporter.sendMail(mailOptions);
+    console.log(`Admission confirmation email sent to ${admissionData.email}`);
+  } catch (err) {
+    console.error('Failed to send admission confirmation email:', err.message);
+  }
+};
+
 // --- Multer config for admission documents ---
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../config/cloudinary');
@@ -101,6 +152,7 @@ router.post(
     { name: 'aadharVidOrReceipt', maxCount: 1 },
     { name: 'studentPhoto', maxCount: 1 },
     { name: 'birthCertificate', maxCount: 1 },
+    { name: 'casteCertificate', maxCount: 1 }
   ]),
   async (req, res) => {
     try {
@@ -122,6 +174,9 @@ router.post(
         if (req.files.birthCertificate) {
           data.birthCertificate = req.files.birthCertificate[0].path;
         }
+        if (req.files.casteCertificate) {
+          data.casteCertificate = req.files.casteCertificate[0].path;
+        }
       }
 
       if (!data.fatherName && !data.motherName && !data.guardianName) {
@@ -138,8 +193,9 @@ router.post(
 
       const admission = await Admission.create(data);
       
-      // Send background email notification
+      // Send background email notifications
       sendSubmissionEmail(admission);
+      sendApplicantConfirmationEmail(admission);
 
       res.status(201).json({ 
         message: 'Application submitted successfully', 

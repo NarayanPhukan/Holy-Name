@@ -59,22 +59,15 @@ const defaultHeadMistress = {
 };
 
 const defaultSchoolProfile = {
-  name: "Holy Name School",
-  logo: "/Pictures/Logo.jpg",
-  punchLine: "Let Your Light Shine",
-  phone: "6901055733",
-  email: "holynameschool@gmail.com",
-  officeHours: "9am - 1:30pm (Mon - Sat)",
-  officeAddress: "XMH8+GGW, Nazira Ali Rd, Hatimuria, Assam 785697",
-  mapLink: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3555.6218095340837!2d94.66374457624775!3d26.978873257242732!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x374736eaad53cc3d%3A0x49d6b196c9334e5d!2sHoly%20Name%20School!5e0!3m2!1sen!2sin!4v1774612478828!5m2!1sen!2sin",
-  heroImages: [
-    "/Pictures/1.JPG",
-    "/Pictures/2.JPG",
-    "/Pictures/3.JPG",
-    "/Pictures/4.JPG",
-    "/Pictures/5.JPG",
-    "/Pictures/6.JPG",
-  ]
+  name: "",
+  logo: "",
+  punchLine: "",
+  phone: "",
+  email: "",
+  officeHours: "",
+  officeAddress: "",
+  mapLink: "",
+  heroImages: []
 };
 
 export const SiteDataProvider = ({ children }) => {
@@ -95,6 +88,8 @@ export const SiteDataProvider = ({ children }) => {
   const [headMistress, setHeadMistress] = useState(defaultHeadMistress);
   const [schoolProfile, setSchoolProfile] = useState(defaultSchoolProfile);
   const [loading, setLoading] = useState(true);
+
+
 
   const lastSaveRef = useRef(0);
 

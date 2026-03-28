@@ -53,7 +53,7 @@ function Notice() {
                     <h3 className="text-2xl font-bold text-gray-800 mb-3">{latestNotice.title}</h3>
                     <p className="text-gray-500 mb-8 font-medium bg-white inline-block px-4 py-1 rounded-full shadow-sm">Published on {latestNotice.date}</p>
                     <div>
-                      <a href={latestNotice.pdfLink} target="_blank" rel="noreferrer" className="bg-primary hover:bg-primary-container text-white px-8 py-3 rounded-full font-medium transition-all shadow-md hover:shadow-lg inline-flex items-center transform hover:scale-105">
+                      <a href={latestNotice.pdfLink} target="_blank" rel="noreferrer" className="bg-primary hover:bg-primary-container text-white px-8 py-3 rounded-full font-medium transition-all shadow-md hover:shadow-lg:shadow-none:shadow-none inline-flex items-center transform hover:scale-105">
                         <FaDownload className="mr-3" /> View / Download PDF
                       </a>
                     </div>

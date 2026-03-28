@@ -72,7 +72,7 @@ const VideoCard = ({ src, title }) => {
       <div style={videoStyle} className="bg-gray-100 flex items-center justify-center">
         {isYouTube(src) ? (
           <iframe 
-            src={embedUrl}
+            src={embedUrl || null}
             width="100%" 
             height="200px" 
             frameBorder="0" 
@@ -83,7 +83,7 @@ const VideoCard = ({ src, title }) => {
           ></iframe>
         ) : (
           <video 
-            src={src}
+            src={src || null}
             width="100%" 
             height="200px" 
             controls

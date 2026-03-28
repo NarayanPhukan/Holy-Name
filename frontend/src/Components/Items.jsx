@@ -58,7 +58,7 @@ const CircleIcon = ({ title, details, Icon }) => {
 
   return (
     <div
-      className={`relative w-14 h-14 md:w-16 md:h-16 rounded-full bg-surface-container border border-outline-variant/30 text-on-surface-variant flex items-center justify-center cursor-pointer transition-all duration-300 group hover:bg-primary hover:text-on-primary hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 ${hover ? 'z-50' : 'z-10'}`}
+      className={`relative w-14 h-14 md:w-16 md:h-16 rounded-full bg-surface-container border border-outline-variant/30 text-on-surface-variant flex items-center justify-center cursor-pointer transition-all duration-300 group hover:bg-primary hover:text-on-primary hover:shadow-xl:shadow-none:shadow-none hover:shadow-primary/20 hover:-translate-y-1 ${hover ? 'z-50' : 'z-10'}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onClick={() => setHover(!hover)}

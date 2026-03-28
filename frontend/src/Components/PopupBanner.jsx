@@ -67,7 +67,7 @@ function PopupBanner() {
       <div className="relative max-w-2xl w-full bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up">
         <button 
           onClick={handleClose}
-          className="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md transition-all sm:top-2 sm:right-2 backdrop-blur-md"
+          className="absolute top-4 right-4 z-10 bg-white/80 hover:bg-white:bg-[#1E293B]:bg-[#1E293B] text-gray-800 p-2 rounded-full shadow-md transition-all sm:top-2 sm:right-2 backdrop-blur-md"
           aria-label="Close banner"
         >
           <FaTimes size={16} />

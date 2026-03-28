@@ -58,7 +58,7 @@ function AdminSignUp() {
             <FaUserPlus className="text-4xl text-primary" />
           </div>
           <h1 className="text-3xl font-serif font-bold text-white mb-2">Create Admin Account</h1>
-          <p className="text-white/80 font-medium">{schoolProfile?.name || "Holy Name School"} Portal</p>
+          <p className="text-white/80 font-medium">{schoolProfile?.name || "School"} Portal</p>
         </div>
 
         {/* Signup Card */}
@@ -83,7 +83,7 @@ function AdminSignUp() {
                     <FaUser className="text-gray-400 group-focus-within:text-primary transition-colors" />
                     </div>
                     <input
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                     id="name"
                     type="text"
                     value={name}
@@ -102,7 +102,7 @@ function AdminSignUp() {
                     <FaEnvelope className="text-gray-400 group-focus-within:text-primary transition-colors" />
                     </div>
                     <input
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                     id="username"
                     type="text"
                     value={username}
@@ -122,7 +122,7 @@ function AdminSignUp() {
                   <FaPhone className="text-gray-400 group-focus-within:text-primary transition-colors" />
                 </div>
                 <input
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                   id="contact"
                   type="text"
                   value={contact}
@@ -142,7 +142,7 @@ function AdminSignUp() {
                     <FaLock className="text-gray-400 group-focus-within:text-primary transition-colors" />
                     </div>
                     <input
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                     id="password"
                     type="password"
                     value={password}
@@ -161,7 +161,7 @@ function AdminSignUp() {
                     <FaLock className="text-gray-400 group-focus-within:text-primary transition-colors" />
                     </div>
                     <input
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
                     id="confirm-password"
                     type="password"
                     value={confirmPassword}
@@ -173,7 +173,7 @@ function AdminSignUp() {
             </div>
 
             <button
-              className="w-full mt-6 bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center transform hover:-translate-y-1 relative overflow-hidden"
+              className="w-full mt-6 bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl:shadow-none:shadow-none transition-all flex items-center justify-center transform hover:-translate-y-1 relative overflow-hidden"
               type="submit"
               disabled={loading}
             >

@@ -1,36 +1,29 @@
-import React from "react";
-import { FaGraduationCap, FaChalkboardTeacher, FaBriefcase, FaEnvelopeOpenText } from "react-icons/fa";
+import React, { useState, useEffect, useContext } from "react";
+import { FaGraduationCap, FaChalkboardTeacher, FaBriefcase, FaEnvelopeOpenText, FaSpinner, FaArrowRight } from "react-icons/fa";
+import { Link, NavLink } from "react-router-dom";
+import { SiteDataContext } from "../context/SiteDataContext";
 
 function Career() {
-  const vacancies = [
-    {
-      id: 1,
-      title: "Senior Secondary Post Graduate Teacher (PGT) - Physics",
-      department: "Science",
-      type: "Full-Time",
-      experience: "3+ Years",
-      qualifications: ["Master's Degree in Physics", "B.Ed. preferred"],
-      deadline: "Oct 30, 2023"
-    },
-    {
-      id: 2,
-      title: "Trained Graduate Teacher (TGT) - English",
-      department: "Arts & Humanities",
-      type: "Full-Time",
-      experience: "2+ Years",
-      qualifications: ["Bachelor's/Master's in English", "B.Ed. required"],
-      deadline: "Nov 15, 2023"
-    },
-    {
-      id: 3,
-      title: "School Counselor",
-      department: "Administration",
-      type: "Full-Time",
-      experience: "1+ Years",
-      qualifications: ["Master's in Psychology or Counseling"],
-      deadline: "Open until filled"
-    }
-  ];
+  const { schoolProfile, API_URL } = useContext(SiteDataContext);
+  const [vacancies, setVacancies] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVacancies = async () => {
+      try {
+        const res = await fetch(`${API_URL}/jobs`);
+        if (res.ok) {
+          const data = await res.json();
+          setVacancies(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch vacancies", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVacancies();
+  }, [API_URL]);
 
   return (
     <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
@@ -63,50 +56,57 @@ function Career() {
               </h2>
 
               <div className="space-y-6 relative z-10">
-                {vacancies.map(job => (
-                  <div key={job.id} className="bg-[#F9F9FB] rounded-2xl border border-gray-200 p-6 md:p-8 hover:shadow-md transition-all duration-300 group">
-                    <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-4">
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-primary transition-colors">{job.title}</h3>
-                        <div className="flex flex-wrap gap-2 text-sm">
-                          <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full font-medium">{job.department}</span>
-                          <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">{job.type}</span>
+                {loading ? (
+                  <div className="flex justify-center py-20">
+                    <FaSpinner className="animate-spin text-4xl text-primary opacity-50" />
+                  </div>
+                ) : vacancies.length > 0 ? (
+                  vacancies.map(job => (
+                    <div key={job._id} className="bg-[#F9F9FB] rounded-2xl border border-gray-200 p-6 md:p-8 hover:shadow-md transition-all duration-300 group">
+                      <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-primary transition-colors">{job.title}</h3>
+                          <div className="flex flex-wrap gap-2 text-sm">
+                            <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full font-medium">{job.department}</span>
+                            <span className="px-3 py-1 bg-primary/10 text-primary rounded-full font-medium">{job.type}</span>
+                          </div>
+                        </div>
+                        <div className="text-left md:text-right">
+                          <p className="text-sm font-bold text-gray-500 mb-1">Apply By</p>
+                          <p className="text-amber-600 font-bold">{job.deadline}</p>
                         </div>
                       </div>
-                      <div className="text-left md:text-right">
-                        <p className="text-sm font-bold text-gray-500 mb-1">Apply By</p>
-                        <p className="text-amber-600 font-bold">{job.deadline}</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div>
+                          <p className="text-gray-500 text-sm font-bold mb-2 flex items-center">
+                            <FaGraduationCap className="mr-2" /> Required Qualifications
+                          </p>
+                          <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
+                            {job.qualifications.map((qual, idx) => (
+                              <li key={idx}>{qual}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-sm font-bold mb-2 flex items-center">
+                            <FaChalkboardTeacher className="mr-2" /> Minimum Experience
+                          </p>
+                          <p className="text-gray-700 text-sm bg-white inline-block px-3 py-1.5 rounded-lg border border-gray-200">{job.experience}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-8 pt-6 border-t border-gray-200 flex justify-between items-center">
+                        <NavLink to={`/apply/${job._id}`} className="bg-primary text-white font-bold py-3 px-6 rounded-xl hover:bg-primary/90 transition-all shadow-md flex items-center group">
+                          Apply Now <FaArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                        </NavLink>
+                        <a href={`mailto:${schoolProfile?.email || ""}`} className="text-gray-400 hover:text-primary transition-colors text-sm font-medium">
+                          Inquiry <FaEnvelopeOpenText className="ml-1 inline" />
+                        </a>
                       </div>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                      <div>
-                        <p className="text-gray-500 text-sm font-bold mb-2 flex items-center">
-                          <FaGraduationCap className="mr-2" /> Required Qualifications
-                        </p>
-                        <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
-                          {job.qualifications.map((qual, idx) => (
-                            <li key={idx}>{qual}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-sm font-bold mb-2 flex items-center">
-                          <FaChalkboardTeacher className="mr-2" /> Minimum Experience
-                        </p>
-                        <p className="text-gray-700 text-sm bg-white inline-block px-3 py-1.5 rounded-lg border border-gray-200">{job.experience}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-8 pt-6 border-t border-gray-200">
-                      <a href="mailto:holynameschool@gmail.com" className="inline-flex items-center text-primary font-bold hover:text-amber-500 transition-colors">
-                        Apply Now <FaEnvelopeOpenText className="ml-2" />
-                      </a>
-                    </div>
-                  </div>
-                ))}
-
-                {vacancies.length === 0 && (
+                  ))
+                ) : (
                   <div className="text-center py-12 bg-[#F9F9FB] rounded-2xl border border-gray-200">
                     <FaBriefcase className="text-5xl text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-gray-600">No Current Vacancies</h3>
@@ -138,8 +138,11 @@ function Career() {
                     <span className="absolute flex items-center justify-center w-8 h-8 bg-amber-500 rounded-full -left-4 ring-4 ring-primary text-primary font-bold">
                       2
                     </span>
-                    <h4 className="font-bold text-lg mb-1 leading-tight text-amber-400">Email</h4>
-                    <p className="text-white/80 text-sm">Send your application package to <a href="mailto:holynameschool@gmail.com" className="underline font-bold">holynameschool@gmail.com</a></p>
+                    <h4 className="font-bold text-lg mb-1 leading-tight text-amber-400">Apply Online</h4>
+                    <p className="text-white/80 text-sm mb-4">Fill out our comprehensive recruitment form and upload required documents.</p>
+                    <Link to="/apply" className="inline-flex items-center px-4 py-2 bg-white text-primary rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-amber-100 transition-all shadow-sm">
+                       Open Form <FaArrowRight className="ml-2" />
+                    </Link>
                 </li>
                 <li className="ml-6">            
                     <span className="absolute flex items-center justify-center w-8 h-8 bg-amber-500 rounded-full -left-4 ring-4 ring-primary text-primary font-bold">

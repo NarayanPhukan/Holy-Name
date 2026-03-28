@@ -74,6 +74,7 @@ function Admission() {
   const [selectedStream, setSelectedStream] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [contactNumber, setContactNumber] = useState("");
+  const [caste, setCaste] = useState("General");
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, ""); // Remove non-digits
@@ -148,12 +149,14 @@ function Admission() {
     const aadharFile = form.querySelector('[name="aadharVidOrReceipt"]')?.files[0];
     const photoFile = form.querySelector('[name="studentPhoto"]')?.files[0];
     const birthFile = form.querySelector('[name="birthCertificate"]')?.files[0];
+    const casteFile = form.querySelector('[name="casteCertificate"]')?.files[0];
 
     if (tcFile) formData.append('transferCertificate', tcFile);
     if (msFile) formData.append('marksheet', msFile);
     if (aadharFile) formData.append('aadharVidOrReceipt', aadharFile);
     if (photoFile) formData.append('studentPhoto', photoFile);
     if (birthFile) formData.append('birthCertificate', birthFile);
+    if (casteFile) formData.append('casteCertificate', casteFile);
 
     try {
       const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
@@ -163,6 +166,8 @@ function Admission() {
       setSubmittedData({
         referenceNumber: res.data.referenceNumber,
         studentName: formData.get('studentName'),
+        gender: formData.get('gender'),
+        caste: formData.get('caste'),
         gradeApplied: formData.get('gradeApplied'),
         penNumber: formData.get('penNumber') || '',
         email: formData.get('email'),
@@ -354,8 +359,20 @@ function Admission() {
                 <input name="religion" type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter religion" />
               </div>
               <div>
-                <label className="block text-gray-700 font-medium mb-2">Caste</label>
-                <input name="caste" type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" placeholder="Enter caste" />
+                <label className="block text-gray-700 font-medium mb-2">Caste *</label>
+                <select 
+                  name="caste" 
+                  value={caste} 
+                  onChange={(e) => setCaste(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" 
+                  required
+                >
+                  <option value="General">General</option>
+                  <option value="OBC">OBC</option>
+                  <option value="SC">SC</option>
+                  <option value="ST">ST</option>
+                  <option value="MOBC">MOBC</option>
+                </select>
               </div>
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Grade/Class Applied For *</label>
@@ -514,7 +531,7 @@ function Admission() {
                         {selectedStream === 'science' && [
                           'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science', 'Geology'
                         ].map(sub => (
-                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors bg-white">
+                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] cursor-pointer transition-colors bg-white">
                             <input 
                               type="checkbox" 
                               checked={selectedSubjects.includes(sub)}
@@ -530,7 +547,7 @@ function Admission() {
                           'Political Science', 'History', 'Geography', 'Education', 'Economics', 
                           'Sociology', 'Logic & Philosophy', 'Anthropology', 'Mathematics', 'Home Science'
                         ].map(sub => (
-                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors bg-white">
+                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] cursor-pointer transition-colors bg-white">
                             <input 
                               type="checkbox" 
                               checked={selectedSubjects.includes(sub)}
@@ -549,7 +566,7 @@ function Admission() {
                           'Economic Geography', 'Computer Science and Application', 
                           'Entrepreneurship Development', 'Multimedia and Web Technology'
                         ].map(sub => (
-                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors bg-white">
+                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] cursor-pointer transition-colors bg-white">
                             <input 
                               type="checkbox" 
                               checked={selectedSubjects.includes(sub)}
@@ -666,6 +683,18 @@ function Admission() {
                 <input name="marksheet" type="file" accept=".pdf,.jpg,.jpeg,.png" className="w-full px-4 py-[9px] rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors bg-white" required />
                 <p className="text-xs text-gray-500 mt-1">PDF, JPG, or PNG</p>
               </div>
+              {caste !== 'General' && (
+                <div className="md:col-span-2 p-6 bg-amber-50 rounded-2xl border border-amber-200 animate-fadeIn transition-all">
+                   <h3 className="font-bold text-amber-800 mb-4 flex items-center">
+                     <FaIdBadge className="mr-2" /> Caste Certificate *
+                   </h3>
+                   <div className="space-y-2">
+                     <label className="text-sm font-bold text-amber-600 uppercase tracking-widest">Upload Certificate ({caste})</label>
+                     <input required={caste !== 'General'} type="file" name="casteCertificate" accept=".pdf,.jpg,.jpeg,.png" className="w-full px-4 py-[9px] rounded-xl border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors bg-white" />
+                     <p className="text-xs text-amber-700/70 mt-1">Required for {caste} category. (Max 5MB)</p>
+                   </div>
+                </div>
+              )}
               
               <div className="md:col-span-2">
                 <label className="block text-gray-700 font-medium mb-2">Aadhar Card / VID Photo {aadharNumber ? '' : '*'}</label>
@@ -685,7 +714,7 @@ function Admission() {
               <button 
                 type="submit" 
                 disabled={submitting}
-                className={`text-white font-bold px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 text-lg flex items-center justify-center mx-auto ${submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-opacity-90 hover:shadow-lg'}`}
+                className={`text-white font-bold px-10 py-4 rounded-full transition-all duration-300 transform hover:-translate-y-1 text-lg flex items-center justify-center mx-auto ${submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-opacity-90 hover:shadow-lg:shadow-none:shadow-none'}`}
               >
                 {submitting ? (
                   <>
@@ -728,15 +757,15 @@ function Admission() {
                 {/* School Header */}
                 <div className="flex flex-col items-center text-center border-b-2 border-gray-200 pb-6 mb-6 pt-2">
                   <img 
-                    src={schoolProfile?.logo || "/Pictures/Logo.jpg"} 
+                    src={schoolProfile?.logo || null} 
                     alt="School Logo" 
                     className="w-20 h-20 object-contain mb-3"
                   />
                   <h2 className="text-2xl md:text-3xl font-serif font-black text-primary tracking-tight">
-                    {schoolProfile?.name || "Holy Name School"}
+                    {schoolProfile?.name || "School"}
                   </h2>
                   <p className="text-sm text-amber-600 font-semibold italic tracking-wider mt-1">
-                    {schoolProfile?.punchLine || "Let Your Light Shine"}
+                    {schoolProfile?.punchLine}
                   </p>
                   <div className="h-0.5 w-16 bg-amber-400 mt-3"></div>
                   <p className="text-xs text-gray-500 mt-2 font-medium uppercase tracking-widest">Admission Acknowledgement Receipt</p>
@@ -767,6 +796,17 @@ function Admission() {
                     <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
                       <span className="text-gray-500 font-medium text-sm">Class Applied</span>
                       <span className="font-bold text-gray-900 uppercase">{submittedData.gradeApplied}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                      <span className="text-gray-500 font-medium text-sm">Gender</span>
+                      <span className="font-bold text-gray-900 capitalize">{submittedData.gender}</span>
+                    </div>
+                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                      <span className="text-gray-500 font-medium text-sm">Category / Caste</span>
+                      <span className="font-bold text-gray-900">{submittedData.caste}</span>
                     </div>
                   </div>
 
@@ -840,12 +880,12 @@ function Admission() {
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
                     <span className="flex items-center text-gray-700 font-medium">
                       <FaPhoneAlt className="text-primary mr-2 text-xs" />
-                      {schoolProfile?.phone || "6901055733"}
+                      {schoolProfile?.phone}
                     </span>
                     <span className="hidden sm:inline text-gray-300">|</span>
                     <span className="flex items-center text-gray-700 font-medium">
                       <FaEnvelope className="text-primary mr-2 text-xs" />
-                      {schoolProfile?.email || "holynameschool@gmail.com"}
+                      {schoolProfile?.email}
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">{schoolProfile?.officeAddress || ""}</p>
@@ -1025,14 +1065,14 @@ function Admission() {
         <div className="mt-8 bg-white rounded-2xl shadow-md p-6 border border-gray-100 text-center">
           <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mb-3">Need Help? Contact Admissions Office</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm">
-            <a href={`tel:${schoolProfile?.phone || '6901055733'}`} className="flex items-center text-gray-700 font-medium hover:text-primary transition-colors">
+            <a href={`tel:${schoolProfile?.phone || ''}`} className="flex items-center text-gray-700 font-medium hover:text-primary transition-colors">
               <FaPhoneAlt className="text-amber-500 mr-2" />
-              {schoolProfile?.phone || '6901055733'}
+              {schoolProfile?.phone}
             </a>
             <span className="hidden sm:inline text-gray-300">|</span>
-            <a href={`mailto:${schoolProfile?.email || 'holynameschool@gmail.com'}`} className="flex items-center text-gray-700 font-medium hover:text-primary transition-colors">
+            <a href={`mailto:${schoolProfile?.email || ''}`} className="flex items-center text-gray-700 font-medium hover:text-primary transition-colors">
               <FaEnvelope className="text-amber-500 mr-2" />
-              {schoolProfile?.email || 'holynameschool@gmail.com'}
+              {schoolProfile?.email}
             </a>
           </div>
         </div>

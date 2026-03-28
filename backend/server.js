@@ -17,6 +17,8 @@ const contentRoutes = require('./routes/content');
 const admissionsRoutes = require('./routes/admissions');
 const studentsRoutes = require('./routes/students');
 const inquiriesRoutes = require('./routes/inquiries');
+const jobRoutes = require('./routes/jobs');
+const jobApplicationRoutes = require('./routes/jobApplications');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -82,8 +84,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const uploadsDir = path.join(__dirname, 'uploads');
 const contentUploadsDir = path.join(uploadsDir, 'content');
 const admissionsUploadsDir = path.join(uploadsDir, 'admissions');
+const jobApplicationsUploadsDir = path.join(uploadsDir, 'job-applications');
 
-[uploadsDir, contentUploadsDir, admissionsUploadsDir].forEach((dir) => {
+[uploadsDir, contentUploadsDir, admissionsUploadsDir, jobApplicationsUploadsDir].forEach((dir) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
@@ -100,9 +103,11 @@ app.use('/api/auth/request-otp', authLimiter);
 app.use('/api/auth', apiLimiter, authRoutes);
 
 app.use('/api/content', apiLimiter, contentRoutes);
-app.use('/api/admissions', apiLimiter, admissionsRoutes);
-app.use('/api/students', apiLimiter, studentsRoutes);
-app.use('/api/inquiries', apiLimiter, inquiriesRoutes);
+app.use('/api/admissions', admissionsRoutes);
+app.use('/api/students', studentsRoutes);
+app.use('/api/inquiries', inquiriesRoutes);
+app.use('/api/jobs', apiLimiter, jobRoutes);
+app.use('/api/job-applications', jobApplicationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

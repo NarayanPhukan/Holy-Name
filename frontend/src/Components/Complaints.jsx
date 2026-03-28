@@ -75,7 +75,7 @@ function Complaints() {
     // Header - School Name and Logo
     doc.setFontSize(22);
     doc.setTextColor(30, 64, 175); // Primary color #1E40AF
-    doc.text(schoolProfile?.name || "Holy Name School", pageWidth / 2, 25, { align: "center" });
+    doc.text(schoolProfile?.name || "School", pageWidth / 2, 25, { align: "center" });
     
     doc.setFontSize(10);
     doc.setTextColor(100);
@@ -141,7 +141,7 @@ function Complaints() {
     doc.setFontSize(9);
     doc.setTextColor(150);
     doc.text("This is an automatically generated receipt. No signature required.", pageWidth / 2, pageHeight - 15, { align: "center" });
-    doc.text(`Generated on: ${new Date().toLocaleString()} | Holy Name School Management System`, pageWidth / 2, pageHeight - 10, { align: "center" });
+    doc.text(`Generated on: ${new Date().toLocaleString()} | ${schoolProfile?.name || "School"} Management System`, pageWidth / 2, pageHeight - 10, { align: "center" });
     
     // Attempt to add logo if available
     if (schoolProfile?.logo) {
@@ -307,7 +307,7 @@ function Complaints() {
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="name">Full Name {formData.type === 'General Inquiry' ? '*' : ''}</label>
                   <input
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     id="name" name="name" type="text" placeholder="John Doe"
                     value={formData.name} onChange={handleChange} required={!formData.isAnonymous}
                   />
@@ -315,7 +315,7 @@ function Complaints() {
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="email">Email Address {formData.type === 'General Inquiry' ? '*' : ''}</label>
                   <input
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                     id="email" name="email" type="email" placeholder="john@example.com"
                     value={formData.email} onChange={handleChange} required={!formData.isAnonymous}
                   />
@@ -328,7 +328,7 @@ function Complaints() {
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="phone">Phone Number</label>
                   <input
-                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${formData.phone.length > 0 && formData.phone.length < 10 ? "border-red-300 bg-red-50" : "border-gray-200"}`}
+                    className={`w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all ${formData.phone.length > 0 && formData.phone.length < 10 ? "border-red-300 bg-red-50" : "border-gray-200"}`}
                     id="phone" 
                     name="phone" 
                     type="tel" 
@@ -347,7 +347,7 @@ function Complaints() {
               <div className={formData.isAnonymous ? "md:col-span-2" : ""}>
                 <label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="subject">Subject</label>
                 <input
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   id="subject" name="subject" type="text" placeholder="Brief summary of your message"
                   value={formData.subject} onChange={handleChange} required
                 />
@@ -357,7 +357,7 @@ function Complaints() {
             <div className="mb-8">
               <label className="block text-sm font-bold text-gray-700 mb-2" htmlFor="message">Message Details</label>
               <textarea
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
                 id="message" name="message" rows="5" placeholder="Please provide as much detail as possible..."
                 value={formData.message} onChange={handleChange} required
               />
@@ -367,7 +367,7 @@ function Complaints() {
               <p className="text-xs text-gray-500 hidden sm:flex items-center"><FaExclamationCircle className="mr-1"/> All required fields must be filled</p>
               <button
                 disabled={submitting}
-                className={`w-full sm:w-auto font-bold py-3.5 px-8 rounded-xl shadow-md transition-all flex items-center justify-center transform hover:-translate-y-1 ${submitting ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-primary hover:bg-primary-container text-white hover:shadow-lg'}`}
+                className={`w-full sm:w-auto font-bold py-3.5 px-8 rounded-xl shadow-md transition-all flex items-center justify-center transform hover:-translate-y-1 ${submitting ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-primary hover:bg-primary-container text-white hover:shadow-lg:shadow-none:shadow-none'}`}
                 type="submit"
               >
                 {submitting ? 'Sending...' : 'Send Message'} <FaPaperPlane className="ml-3" />

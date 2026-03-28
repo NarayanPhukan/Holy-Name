@@ -53,7 +53,7 @@ function AdminLoginBtn({ onClick }) {
         </>
       ) : (
         <button
-          className="flex items-center justify-center w-full sm:w-auto px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-container transition-colors shadow-md hover:shadow-lg font-medium text-sm"
+          className="flex items-center justify-center w-full sm:w-auto px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-container transition-colors shadow-md hover:shadow-lg:shadow-none:shadow-none font-medium text-sm"
           onClick={handleLogin}
         >
           <FaUserShield className="mr-2" size={16} />

@@ -51,7 +51,7 @@ function Header() {
             />
             <div className="flex flex-col">
               <h1 className="font-bold text-slate-900 tracking-tight text-[13px] sm:text-[14px] xl:text-[16px] leading-tight whitespace-nowrap">
-                {schoolProfile?.name || "Holy Name School"}
+                {schoolProfile?.name || "School"}
               </h1>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-[9px] sm:text-[10px] tracking-widest uppercase font-bold text-primary">

@@ -31,7 +31,7 @@ function Contact() {
             </div>
             <h3 className="text-xl font-bold text-primary mb-3">Our Campus</h3>
             <p className="text-gray-600 whitespace-pre-line">
-              {schoolProfile?.officeAddress || `${schoolProfile?.name || "Holy Name School"}\nCherekapar, Nazira Ali Rd, Hatimuria\nDist: Sivasagar, Assam - 785697`}
+              {schoolProfile?.officeAddress || schoolProfile?.name}
             </p>
           </div>
 
@@ -44,8 +44,8 @@ function Contact() {
             <p className="text-gray-600 mb-4">
               We're available during office hours to answer your calls.
             </p>
-            <a href={`tel:${schoolProfile?.phone || "6901055733"}`} className="text-xl font-bold text-amber-600 hover:text-amber-500 transition-colors">
-              +91 {schoolProfile?.phone || "6901055733"}
+            <a href={`tel:${schoolProfile?.phone || ""}`} className="text-xl font-bold text-amber-600 hover:text-amber-500 transition-colors">
+              {schoolProfile?.phone && `+91 ${schoolProfile.phone}`}
             </a>
           </div>
 
@@ -58,8 +58,8 @@ function Contact() {
             <p className="text-gray-600 mb-4">
               Send us an email and we'll respond as soon as possible.
             </p>
-            <a href={`mailto:${schoolProfile?.email || "holynameschool@gmail.com"}`} className="font-bold text-blue-600 hover:text-blue-500 transition-colors break-all">
-              {schoolProfile?.email || "holynameschool@gmail.com"}
+            <a href={`mailto:${schoolProfile?.email || ""}`} className="font-bold text-blue-600 hover:text-blue-500 transition-colors break-all">
+              {schoolProfile?.email}
             </a>
           </div>
 
@@ -74,7 +74,7 @@ function Contact() {
             </p>
             <div className="text-gray-600 space-y-1">
               <p className="font-bold text-green-600 whitespace-pre-line text-lg">
-                {schoolProfile?.officeHours || "9:00 AM - 1:30 PM (Mon - Sat)\nSunday & Holidays: Closed"}
+                {schoolProfile?.officeHours || "Contact us for office hours"}
               </p>
             </div>
           </div>

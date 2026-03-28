@@ -1,7 +1,9 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { NavLink } from 'react-router-dom';
-import { FaUsers, FaClipboardList, FaCheckCircle, FaChartLine, FaSignOutAlt, FaSearch, FaImage, FaVideo, FaStar, FaChalkboardTeacher, FaPlus, FaTrash, FaEdit, FaCalendarAlt, FaBars, FaTimes, FaCog, FaEnvelope, FaShareAlt, FaGraduationCap, FaSpinner, FaInfoCircle, FaCommentDots, FaEnvelopeOpenText } from 'react-icons/fa';
+import { FaUsers, FaClipboardList, FaCheckCircle, FaChartLine, FaSignOutAlt, FaSearch, FaImage, FaVideo, FaStar, FaChalkboardTeacher, FaPlus, FaTrash, FaEdit, FaCalendarAlt, FaBars, FaTimes, FaCog, FaEnvelope, FaShareAlt, FaGraduationCap, FaSpinner, FaInfoCircle, FaCommentDots, FaEnvelopeOpenText, FaDownload, FaBriefcase, FaIdCard } from 'react-icons/fa';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { SiteDataContext } from '../context/SiteDataContext';
 
 function AdminPage() {
@@ -9,7 +11,10 @@ function AdminPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [expandedEventId, setExpandedEventId] = useState(null);
   const [isAddingPhotos, setIsAddingPhotos] = useState(false);
-  const { schoolProfile, setSchoolProfile, gallery, setGallery, videos, setVideos, highlights, setHighlights, events, setEvents, faculty, setFaculty, principal, setPrincipal, notices, setNotices, notificationEmail, setNotificationEmail, banner, setBanner, socialLinks, setSocialLinks, alumni, setAlumni, stats, setStats, visionStatement, setVisionStatement, aimsAndObjectives, setAimsAndObjectives, headMistress, setHeadMistress, updateSiteContent, uploadImage, uploadEventPhotos, API_URL } = useContext(SiteDataContext);
+  const { schoolProfile, setSchoolProfile, gallery, setGallery, videos, setVideos, highlights, setHighlights, events, setEvents, faculty, setFaculty, principal, setPrincipal, notices, setNotices, notificationEmail, setNotificationEmail, banner, setBanner, socialLinks, setSocialLinks, alumni, setAlumni, stats, setStats, visionStatement, setVisionStatement, aimsAndObjectives, setAimsAndObjectives, headMistress, setHeadMistress, updateSiteContent, uploadImage, uploadEventPhotos, API_URL: raw_API_URL } = useContext(SiteDataContext);
+  
+  // Defensive API_URL with leading slash
+  const API_URL = raw_API_URL?.startsWith('/') ? raw_API_URL : `/${raw_API_URL || 'api'}`;
 
   // --- Auth & Role ---
   const [adminUser, setAdminUser] = useState(null);
@@ -53,6 +58,12 @@ function AdminPage() {
     restoreSession();
   }, [API_URL]);
 
+  useEffect(() => {
+    if (activeTab === 'jobApplications') {
+      fetchJobApplications();
+    }
+  }, [activeTab]);
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminData');
@@ -60,20 +71,437 @@ function AdminPage() {
     window.location.href = '/adminLogin';
   };
 
+  // --- Auto Logout on Inactivity (30 mins) ---
+  useEffect(() => {
+    let timeoutId;
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        // Automatically logout due to inactivity
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminData');
+        window.location.href = '/adminLogin';
+      }, 30 * 60 * 1000); 
+    };
+
+    resetTimer();
+
+    const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+    events.forEach(event => window.addEventListener(event, resetTimer, { passive: true }));
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach(event => window.removeEventListener(event, resetTimer, { passive: true }));
+    };
+  }, []);
+
   // --- Fetch real admission applications && Inquiries ---
   const [applications, setApplications] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [inquirySearch, setInquirySearch] = useState('');
   const [selectedApp, setSelectedApp] = useState(null); // For "View" modal
+  const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [editingJobId, setEditingJobId] = useState(null);
+  const [isAddingJob, setIsAddingJob] = useState(false);
+  const [currentJob, setCurrentJob] = useState({
+    title: '',
+    department: 'Science',
+    type: 'Full-Time',
+    experience: '',
+    qualifications: '',
+    deadline: 'Open until filled'
+  });
+  const [jobApplications, setJobApplications] = useState([]);
+  const [jobApplicationsLoading, setJobApplicationsLoading] = useState(false);
+  const [selectedJobApp, setSelectedJobApp] = useState(null);
 
   const fetchApps = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${API_URL}/admissions`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/admissions`, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
       if (res.status === 401) return handleLogout();
       if (res.ok) setApplications(await res.json());
-    } catch (e) { console.warn('Could not fetch applications'); }
+    } catch (e) { 
+      console.warn('Could not fetch applications'); 
+    }
+  };
+
+  const fetchJobApplications = async () => {
+    try {
+      setJobApplicationsLoading(true);
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`${API_URL}/job-applications`, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
+      if (res.status === 401) return handleLogout();
+      if (res.ok) setJobApplications(await res.json());
+    } catch (e) { 
+      console.warn('Could not fetch job applications'); 
+    } finally {
+      setJobApplicationsLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = async (app) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const primaryColor = [37, 99, 235]; // Midblue (Blue 600) theme
+
+    // Helper to load image as Base64 for jsPDF
+    const loadImage = (url) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = url;
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+      });
+    };
+
+    // --- Header ---
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 210, 35, 'F');
+    
+    // Fetch images in parallel
+    const [logoImg, photoImg] = await Promise.all([
+      schoolProfile.logo ? loadImage(schoolProfile.logo) : Promise.resolve(null),
+      app.studentPhoto ? loadImage(app.studentPhoto) : Promise.resolve(null)
+    ]);
+
+    // Add School Logo
+    if (logoImg) {
+      doc.addImage(logoImg, 'PNG', 15, 8, 32, 32);
+    }
+
+    // Add Student Photo (Top Right)
+    if (photoImg) {
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(1);
+      doc.rect(pageWidth - 45, 8, 32, 32, 'D');
+      doc.addImage(photoImg, 'JPEG', pageWidth - 45, 8, 32, 32);
+    }
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text(schoolProfile.name?.toUpperCase() || "HOLY NAME HIGH SCHOOL", 105, 14, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "italic");
+    doc.text(schoolProfile.punchLine || "", 105, 19, { align: "center" });
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("ADMISSION APPLICATION FORM", 105, 26, { align: "center" });
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`REFERENCE NO: ${app.referenceNumber || "N/A"}`, 105, 31, { align: "center" });
+
+    let yPos = 42;
+
+    // --- Sections ---
+    const addSection = (title, data) => {
+      autoTable(doc, {
+        startY: yPos,
+        head: [[title, '']],
+        body: data,
+        theme: 'striped',
+        headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 8.5, cellPadding: 1.5 },
+        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
+        margin: { left: 15, right: 15 },
+      });
+      yPos = doc.lastAutoTable.finalY + 6;
+    };
+
+    // 1. Personal Info
+    addSection("Personal Information", [
+      ["Student Name", app.studentName],
+      ["Date of Birth", app.dateOfBirth],
+      ["Place of Birth", app.placeOfBirth || "N/A"],
+      ["Gender", app.gender],
+      ["Blood Group", app.bloodGroup || "N/A"],
+      ["Religion", app.religion || "N/A"],
+      ["Caste", app.caste || "N/A"],
+      ["Grade Applied", app.gradeApplied]
+    ]);
+
+    // Check if we need a new page
+    if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+    // 2. Parent Info
+    addSection("Parent / Guardian Details", [
+      ["Father's Name", app.fatherName || "N/A"],
+      ["Father's Occupation", app.fatherOccupation || "N/A"],
+      ["Mother's Name", app.motherName || "N/A"],
+      ["Mother's Occupation", app.motherOccupation || "N/A"],
+      ["Guardian Name", app.guardianName || "N/A"],
+      ["Relationship", app.relationship || "N/A"]
+    ]);
+
+    if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+    // 3. Contact & Address
+    addSection("Contact & Address Details", [
+      ["Phone Number", app.contactNumber],
+      ["Email Address", app.email],
+      ["Current Address", app.address],
+      ["Post Office", app.po || "N/A"],
+      ["Police Station", app.ps || "N/A"],
+      ["Pincode", app.pincode || "N/A"]
+    ]);
+
+    if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+    // 4. Academic Background
+    addSection("Academic Background", [
+      ["Previous School", app.previousSchool || "N/A"],
+      ["Stream", app.stream || "N/A"],
+      ["Elective", app.elective || "N/A"],
+      ["MIL", app.mil || "N/A"],
+      ["Selected Subjects", app.selectedSubjects?.join(", ") || "None"]
+    ]);
+
+    if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+    // 5. Identity
+    addSection("Identity Details", [
+      ["Aadhar Number", app.aadharNumber || "N/A"],
+      ["PEN Number", app.penNumber || "N/A"]
+    ]);
+
+    // --- Document Attachments (New Pages) ---
+    const attachments = [
+      { label: "Birth Certificate", url: app.birthCertificate },
+      { label: "Transfer Certificate", url: app.transferCertificate },
+      { label: "Marksheet", url: app.marksheet },
+      { label: "Student Photo (Original)", url: app.studentPhoto },
+      { label: "Aadhar VID/Receipt", url: app.aadharVidOrReceipt }
+    ];
+
+    for (const docItem of attachments) {
+      if (!docItem.url) continue;
+
+      // Skip PDFs for embedding (only handle images)
+      if (docItem.url.toLowerCase().endsWith('.pdf')) {
+        doc.setFontSize(11);
+        doc.setTextColor(...primaryColor);
+        doc.setFont("helvetica", "bold");
+        doc.text(`ATTACHMENT: ${docItem.label.toUpperCase()} (LINK ONLY)`, 15, yPos);
+        yPos += 7;
+        doc.setFontSize(9);
+        doc.setTextColor(0, 50, 150);
+        doc.text(`• Click here to view: ${docItem.label}`, 20, yPos);
+        doc.link(20, yPos - 3, 60, 5, { url: docItem.url });
+        yPos += 10;
+        continue;
+      }
+
+      // Load and embed image
+      const img = await loadImage(docItem.url);
+      if (img) {
+        doc.addPage();
+        const margin = 15;
+        const maxWidth = doc.internal.pageSize.getWidth() - (margin * 2);
+        const maxHeight = doc.internal.pageSize.getHeight() - (margin * 3); // 3x margin for header
+        
+        let imgWidth = img.width;
+        let imgHeight = img.height;
+        const ratio = imgWidth / imgHeight;
+
+        // Scale to fit page
+        if (imgWidth > maxWidth) {
+          imgWidth = maxWidth;
+          imgHeight = imgWidth / ratio;
+        }
+        if (imgHeight > maxHeight) {
+          imgHeight = maxHeight;
+          imgWidth = imgHeight * ratio;
+        }
+
+        // Add Header on attachment page
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`DOCUMENT: ${docItem.label.toUpperCase()}`, 105, 13, { align: "center" });
+
+        // Add the image centered
+        const xPos = (doc.internal.pageSize.getWidth() - imgWidth) / 2;
+        doc.addImage(img, 'JPEG', xPos, 25, imgWidth, imgHeight);
+
+        // Reset text color for status/timestamp
+        doc.setTextColor(150);
+      }
+    }
+
+    // Final Status & Timestamp (centered at bottom of last page)
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`Document generated on: ${new Date().toLocaleString()} | Application Status: ${app.status.toUpperCase()}`, 105, 285, { align: "center" });
+
+    doc.save(`Application_${app.studentName.replace(/\s+/g, '_')}_${app.referenceNumber}.pdf`);
+  };
+
+  const handleDownloadJobPDF = async (app) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const primaryColor = [37, 99, 235]; // Blue 600
+
+    const loadImage = (url) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = url;
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+      });
+    };
+
+    // --- Header ---
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 210, 35, 'F');
+    
+    const [logoImg, photoImg] = await Promise.all([
+      schoolProfile.logo ? loadImage(schoolProfile.logo) : Promise.resolve(null),
+      app.photo ? loadImage(app.photo) : Promise.resolve(null)
+    ]);
+
+    if (logoImg) doc.addImage(logoImg, 'PNG', 15, 8, 32, 32);
+    if (photoImg) {
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(1);
+      doc.rect(pageWidth - 45, 8, 32, 32, 'D');
+      doc.addImage(photoImg, 'JPEG', pageWidth - 45, 8, 32, 32);
+    }
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text(schoolProfile.name?.toUpperCase() || "HOLY NAME HIGH SCHOOL", 105, 14, { align: "center" });
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("JOB APPLICATION DOSSIER", 105, 24, { align: "center" });
+    
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`CANDIDATE: ${app.fullName.toUpperCase()} | REF: ${app.referenceNumber}`, 105, 30, { align: "center" });
+
+    let yPos = 45;
+
+    const addSection = (title, data) => {
+      autoTable(doc, {
+        startY: yPos,
+        head: [[title, '']],
+        body: data,
+        theme: 'striped',
+        headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 8.5, cellPadding: 1.5 },
+        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
+        margin: { left: 15, right: 15 },
+      });
+      yPos = doc.lastAutoTable.finalY + 8;
+    };
+
+    addSection("Personal Information", [
+      ["Full Name", app.fullName],
+      ["Email Address", app.email],
+      ["Phone Number", app.phone],
+      ["Date of Birth / Age", `${app.dob} (${app.age} Years)`],
+      ["Gender", app.gender],
+      ["Caste / Religion", `${app.caste} / ${app.religion}`]
+    ]);
+
+    if (yPos > 250) { doc.addPage(); yPos = 20; }
+
+    addSection("Qualifications & Occupational Status", [
+      ["Highest Qualification", app.qualification],
+      ["Experience Status", app.isExperienced ? "Experienced Professional" : "Fresher / Entry Level"],
+      ["Total Experience", app.totalExperience || "N/A"],
+      ["Last/Current School", app.schoolName || "N/A"],
+      ["UDISE Code", app.udiseCode || "N/A"]
+    ]);
+
+    if (yPos > 250) { doc.addPage(); yPos = 20; }
+
+    addSection("Identity & Contact Details", [
+      ["Aadhar Number", app.aadhar || "N/A"],
+      ["PAN Number", app.pan || "N/A"],
+      ["Full Address", `${app.address}, ${app.postOffice}, ${app.policeStation}, ${app.pincode}`]
+    ]);
+
+    const attachments = [
+      { label: "Candidate Photo", url: app.photo },
+      { label: "Digital Signature", url: app.signature },
+      { label: "Resume / CV", url: app.resume },
+      { label: "Class 10 Marksheet", url: app.marksheet10 },
+      { label: "Class 10 Certificate", url: app.cert10 },
+      { label: "Class 12 Marksheet", url: app.marksheet12 },
+      { label: "Class 12 Certificate", url: app.cert12 },
+      { label: "UG Marksheet", url: app.marksheetUG },
+      { label: "UG Certificate", url: app.certUG },
+      { label: "PG Marksheet", url: app.marksheetPG },
+      { label: "PG Certificate", url: app.certPG },
+      { label: "B.Ed Marksheet", url: app.marksheetBEd },
+      { label: "B.Ed Certificate", url: app.certBEd },
+      { label: "D.Led Marksheet", url: app.marksheetDLed },
+      { label: "D.Led Certificate", url: app.certDLed },
+      { label: "Experience Certificate", url: app.expCertificate },
+      { label: "Caste Certificate", url: app.casteCertificate }
+    ];
+
+    for (const docItem of attachments) {
+      if (!docItem.url) continue;
+
+      if (docItem.url.toLowerCase().endsWith('.pdf')) {
+        if (yPos > 270) { doc.addPage(); yPos = 20; }
+        doc.setFontSize(10);
+        doc.setTextColor(...primaryColor);
+        doc.setFont("helvetica", "bold");
+        doc.text(`ATTACHMENT: ${docItem.label.toUpperCase()} (LINK)`, 15, yPos);
+        yPos += 7;
+        doc.setFontSize(8);
+        doc.setTextColor(0, 50, 150);
+        doc.text(`• Click to view: ${docItem.url}`, 20, yPos);
+        doc.link(20, yPos - 3, 150, 5, { url: docItem.url });
+        yPos += 12;
+        continue;
+      }
+
+      const img = await loadImage(docItem.url);
+      if (img) {
+        doc.addPage();
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`DOCUMENT: ${docItem.label.toUpperCase()}`, 105, 13, { align: "center" });
+
+        const margin = 15;
+        const maxWidth = 180;
+        const maxHeight = 240;
+        let w = img.width;
+        let h = img.height;
+        const r = w / h;
+        if (w > maxWidth) { w = maxWidth; h = w / r; }
+        if (h > maxHeight) { h = maxHeight; w = h * r; }
+        doc.addImage(img, 'JPEG', (210 - w) / 2, 30, w, h);
+      }
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text(`Generated on: ${new Date().toLocaleString()} | Candidate: ${app.fullName}`, 105, 288, { align: "center" });
+    doc.save(`JobApp_${app.fullName.replace(/\s+/g, '_')}_${app.referenceNumber}.pdf`);
   };
 
   const fetchAdmins = async () => {
@@ -104,6 +532,72 @@ function AdminPage() {
     } catch (e) { console.warn('Could not fetch inquiries'); }
   };
 
+  const fetchJobs = async () => {
+    setJobsLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/jobs`);
+      if (res.ok) setJobs(await res.json());
+    } catch (e) { console.warn('Could not fetch jobs'); }
+    setJobsLoading(false);
+  };
+
+  const handleJobSubmit = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('adminToken');
+    const method = editingJobId ? 'PUT' : 'POST';
+    const url = editingJobId ? `${API_URL}/jobs/${editingJobId}` : `${API_URL}/jobs`;
+
+    const payload = {
+      ...currentJob,
+      qualifications: typeof currentJob.qualifications === 'string' 
+        ? currentJob.qualifications.split(',').map(q => q.trim()).filter(q => q) 
+        : currentJob.qualifications
+    };
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert(editingJobId ? 'Job updated successfully!' : 'Job posted successfully!');
+        setIsAddingJob(false);
+        setEditingJobId(null);
+        setCurrentJob({ title: '', department: 'Science', type: 'Full-Time', experience: '', qualifications: '', deadline: 'Open until filled' });
+        fetchJobs();
+      } else {
+        const data = await res.json();
+        alert(data.message || 'Error processing job');
+      }
+    } catch (err) {
+      alert('Network error');
+    }
+  };
+
+  const handleDeleteJob = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this job opening?')) return;
+    const token = localStorage.getItem('adminToken');
+    try {
+      const res = await fetch(`${API_URL}/jobs/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setJobs(prev => prev.filter(j => j._id !== id));
+        alert('Job deleted');
+      } else {
+        alert('Failed to delete job');
+      }
+    } catch (err) {
+      alert('Error deleting job');
+    }
+  };
+
   const handleInquiryReadToggle = async (inquiryId, currentStatus) => {
     // Optimistic Update
     const prevInquiries = [...inquiries];
@@ -128,9 +622,11 @@ function AdminPage() {
   };
 
   useEffect(() => {
-    fetchApps();
-    fetchStudents();
-    fetchInquiries();
+    if (activeTab === 'applications') fetchApps();
+    if (activeTab === 'inquiries') fetchInquiries();
+    if (activeTab === 'students') fetchStudents();
+    if (activeTab === 'admins') fetchAdmins();
+    if (activeTab === 'careerAds') fetchJobs();
     if (adminUser?.role === 'superadmin') fetchAdmins();
     // Live changes: poll every 30 seconds
     const interval = setInterval(() => {
@@ -459,30 +955,47 @@ function AdminPage() {
   );
 
   // --- Highlights Tab ---
-  const [newHighlight, setNewHighlight] = useState({ title: '', date: '', category: 'Academic', image: '', description: '' });
-  const [highlightFile, setHighlightFile] = useState(null);
+  const [newHighlight, setNewHighlight] = useState({ title: '', date: '', category: 'Academic', image: '', description: '', galleryImages: [] });
+  const [highlightFiles, setHighlightFiles] = useState([]);
   const [isHighlightUploading, setIsHighlightUploading] = useState(false);
 
   const handleAddHighlight = async () => {
-    if (!newHighlight.title || (!highlightFile && !newHighlight.image)) return;
+    if (!newHighlight.title || (highlightFiles.length === 0 && !newHighlight.image)) return;
     
     setIsHighlightUploading(true);
     try {
-      let imageUrl = newHighlight.image;
-      if (highlightFile) {
-        imageUrl = await uploadImage(highlightFile);
+      const filesToUpload = highlightFiles.slice(0, 10);
+      const coverFile = filesToUpload.length > 0 ? filesToUpload[0] : null;
+      const galleryFilesToUpload = filesToUpload.length > 1 ? filesToUpload.slice(1) : [];
+      
+      // Upload photos
+      const response = await uploadEventPhotos(coverFile, galleryFilesToUpload, newHighlight.title);
+      
+      let coverUrl = newHighlight.image;
+      const galleryPhotoUrls = [];
+      
+      if (response) {
+        if (response.cover?.url) coverUrl = response.cover.url;
+        if (response.gallery) {
+          response.gallery.forEach(img => galleryPhotoUrls.push(img.url));
+        }
+        // Include cover in gallery list too for carousel
+        if (coverUrl && filesToUpload.length > 0) {
+          galleryPhotoUrls.unshift(coverUrl);
+        }
       }
       
       const itemToAdd = { 
         ...newHighlight, 
-        image: imageUrl,
+        image: coverUrl,
+        galleryImages: galleryPhotoUrls,
         _id: `temp-${Date.now()}` 
       };
       setHighlights([itemToAdd, ...highlights]);
-      setNewHighlight({ title: '', date: '', category: 'Academic', image: '', description: '' });
-      setHighlightFile(null);
+      setNewHighlight({ title: '', date: '', category: 'Academic', image: '', description: '', galleryImages: [] });
+      setHighlightFiles([]);
     } catch (err) {
-      alert("Failed to upload highlight image: " + err.message);
+      alert("Failed to upload highlight images: " + err.message);
     }
     setIsHighlightUploading(false);
   };
@@ -496,13 +1009,25 @@ function AdminPage() {
         <input type="text" placeholder="Title" value={newHighlight.title} onChange={e => setNewHighlight({...newHighlight, title: e.target.value})} className="p-2 border rounded-lg" />
         <input type="text" placeholder="Date (e.g. March 15, 2026)" value={newHighlight.date} onChange={e => setNewHighlight({...newHighlight, date: e.target.value})} className="p-2 border rounded-lg" />
         <div className="p-2 border rounded-lg bg-white flex flex-col md:col-span-2">
-          <label className="text-gray-400 text-sm mb-1">Highlight Image:</label>
+          <label className="text-gray-400 text-sm mb-1">Highlight Images (Max 10, First is Cover):</label>
           <input 
             type="file" 
+            multiple
             accept="image/*"
-            onChange={e => setHighlightFile(e.target.files[0])} 
-            className="w-full text-sm p-1 border rounded" 
+            onChange={e => {
+              const files = Array.from(e.target.files);
+              if (files.length > 10) {
+                alert("Maximum 10 photos allowed. Only the first 10 will be selected.");
+                setHighlightFiles(files.slice(0, 10));
+              } else {
+                setHighlightFiles(files);
+              }
+            }} 
+            className="w-full text-sm p-1 border rounded cursor-pointer" 
           />
+          {highlightFiles.length > 0 && (
+            <p className="text-blue-600 text-xs mt-1 font-medium">{highlightFiles.length} file(s) selected. The first image will be used as the cover.</p>
+          )}
           {isHighlightUploading && <p className="text-xs text-blue-500 mt-1">Uploading...</p>}
         </div>
         <select value={newHighlight.category} onChange={e => setNewHighlight({...newHighlight, category: e.target.value})} className="p-2 border rounded-lg">
@@ -524,7 +1049,7 @@ function AdminPage() {
               <img src={item.image} className="w-16 h-16 object-cover rounded-lg bg-gray-200" alt="" />
               <div>
                 <p className="font-bold">{item.title}</p>
-                <p className="text-sm text-gray-500">{item.date} • {item.category}</p>
+                <p className="text-sm text-gray-500">{item.date} • {item.category} • {(item.galleryImages?.length || 1)} photo(s)</p>
               </div>
             </div>
             <button onClick={() => handleDeleteHighlight(item._id)} className="text-red-500 hover:text-red-700 p-2"><FaTrash /></button>
@@ -869,7 +1394,7 @@ function AdminPage() {
       </div>
       <div className="space-y-3">
         {notices.map(item => (
-          <div key={item._id || item.id} className="flex justify-between items-center p-4 border rounded-xl hover:bg-gray-50 transition-colors">
+          <div key={item._id || item.id} className="flex justify-between items-center p-4 border rounded-xl hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] transition-colors">
             <div className="flex gap-4 items-center">
               <div className="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center font-bold text-xs uppercase">PDF</div>
               <div>
@@ -1021,23 +1546,23 @@ function AdminPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-          <input type="text" disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.name : principal.name} onChange={e => handlePrincipalChange('name', e.target.value)} className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500" />
+          <input type="text" disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.name : principal.name} onChange={e => handlePrincipalChange('name', e.target.value)} className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500:text-gray-400:text-gray-400" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-          <input type="text" disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.title : principal.title} onChange={e => handlePrincipalChange('title', e.target.value)} className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500" />
+          <input type="text" disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.title : principal.title} onChange={e => handlePrincipalChange('title', e.target.value)} className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500:text-gray-400:text-gray-400" />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Introductory Quote</label>
-          <input type="text" disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.introQuote : principal.introQuote} onChange={e => handlePrincipalChange('introQuote', e.target.value)} className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500" />
+          <input type="text" disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.introQuote : principal.introQuote} onChange={e => handlePrincipalChange('introQuote', e.target.value)} className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500:text-gray-400:text-gray-400" />
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Main Message (Use Enter for new paragraphs)</label>
-          <textarea disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.message : principal.message} onChange={e => handlePrincipalChange('message', e.target.value)} className="w-full p-2 border rounded-lg font-sans text-sm disabled:bg-gray-200 disabled:text-gray-500" rows="10"></textarea>
+          <textarea disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.message : principal.message} onChange={e => handlePrincipalChange('message', e.target.value)} className="w-full p-2 border rounded-lg font-sans text-sm disabled:bg-gray-200 disabled:text-gray-500:text-gray-400:text-gray-400" rows="10"></textarea>
         </div>
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Closing Quote (Optional)</label>
-          <input type="text" disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.closingQuote : principal.closingQuote} onChange={e => handlePrincipalChange('closingQuote', e.target.value)} className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500" />
+          <input type="text" disabled={!isEditingPrincipal} value={isEditingPrincipal ? editPrincipal.closingQuote : principal.closingQuote} onChange={e => handlePrincipalChange('closingQuote', e.target.value)} className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500:text-gray-400:text-gray-400" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Principal Photo</label>
@@ -1160,7 +1685,7 @@ function AdminPage() {
             disabled={!isEditingBanner} 
             value={isEditingBanner ? (editBanner.link || '') : (banner?.link || '')} 
             onChange={e => handleBannerChange('link', e.target.value)} 
-            className="w-full max-w-sm p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500" 
+            className="w-full max-w-sm p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500:text-gray-400:text-gray-400" 
           />
           <p className="text-xs text-gray-500 mt-2">If provided, clicking the banner will open this link.</p>
         </div>
@@ -1397,7 +1922,7 @@ function AdminPage() {
               disabled={!isEditingSocial} 
               value={isEditingSocial ? (editSocial[platform.id] || '') : (socialLinks?.[platform.id] || '')} 
               onChange={e => handleSocialChange(platform.id, e.target.value)} 
-              className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500" 
+              className="w-full p-2 border rounded-lg disabled:bg-gray-200 disabled:text-gray-500:text-gray-400:text-gray-400" 
             />
           </div>
         ))}
@@ -1686,7 +2211,7 @@ function AdminPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {recentApps.map((app, idx) => (
-                <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                <tr key={idx} className="hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] transition-colors">
                   <td className="px-6 py-4 font-medium text-gray-900 text-sm">{app.id}</td>
                   <td className="px-6 py-4 text-gray-700 text-sm">{app.name}</td>
                   <td className="px-6 py-4 text-gray-700 text-sm">{app.grade}</td>
@@ -1833,7 +2358,7 @@ function AdminPage() {
             )}
             <button 
               type="submit"
-              className="md:col-span-2 bg-gradient-to-r from-primary to-primary-fixed hover:-translate-y-0.5 transition-transform text-white px-6 py-3 rounded-xl font-bold flex justify-center items-center shadow-md hover:shadow-lg"
+              className="md:col-span-2 bg-gradient-to-r from-primary to-primary-fixed hover:-translate-y-0.5 transition-transform text-white px-6 py-3 rounded-xl font-bold flex justify-center items-center shadow-md hover:shadow-lg:shadow-none:shadow-none"
             >
               <FaPlus className="mr-2" /> {editingStatId ? 'Update Stat' : (isPassResult ? 'Calculate & Add Stat' : 'Add Stat')}
             </button>
@@ -1847,7 +2372,7 @@ function AdminPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {(stats || []).map((stat, index) => (
-             <div key={stat.id || index} className="group bg-white border border-gray-100 p-6 rounded-2xl hover:shadow-xl transition-all hover:-translate-y-1 relative overflow-hidden">
+             <div key={stat.id || index} className="group bg-white border border-gray-100 p-6 rounded-2xl hover:shadow-xl:shadow-none:shadow-none transition-all hover:-translate-y-1 relative overflow-hidden">
                <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-primary to-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
                <div className="font-bold text-3xl text-gray-800 mb-1">{stat.value}</div>
                <div className="text-gray-500 font-medium uppercase tracking-wider text-xs">{stat.label}</div>
@@ -1899,13 +2424,24 @@ function AdminPage() {
   };
 
   // --- School Profile Tab ---
+  const [localProfile, setLocalProfile] = useState(schoolProfile);
+  const localProfileInitRef = useRef(false);
+
+  // Sync from context → local ONLY on initial load (not on every context change)
+  useEffect(() => {
+    if (!localProfileInitRef.current && schoolProfile) {
+      setLocalProfile(schoolProfile);
+      localProfileInitRef.current = true;
+    }
+  }, [schoolProfile]);
+
   const renderSchoolProfileTab = () => {
     const handleProfileChange = (field, value) => {
-      setSchoolProfile(prev => ({ ...prev, [field]: value }));
+      setLocalProfile(prev => ({ ...prev, [field]: value }));
     };
 
     const handleProfileSave = async () => {
-      await updateSiteContent({ schoolProfile });
+      await updateSiteContent({ schoolProfile: localProfile });
       alert('School Profile updated successfully!');
     };
 
@@ -1914,7 +2450,7 @@ function AdminPage() {
       if (!file) return;
       try {
         const url = await uploadImage(file);
-        handleProfileChange('logo', url);
+        setLocalProfile(prev => ({ ...prev, logo: url }));
       } catch (err) {
         alert("Upload failed: " + err.message);
       }
@@ -1925,16 +2461,18 @@ function AdminPage() {
       if (files.length === 0) return;
       try {
         const urls = await Promise.all(files.map(file => uploadImage(file)));
-        handleProfileChange('heroImages', [...(schoolProfile.heroImages || []), ...urls.filter(Boolean)]);
+        setLocalProfile(prev => ({ ...prev, heroImages: [...(prev.heroImages || []), ...urls.filter(Boolean)] }));
       } catch (err) {
         alert("Upload failed: " + err.message);
       }
     };
 
     const removeHeroImage = (index) => {
-      const newImages = [...(schoolProfile.heroImages || [])];
-      newImages.splice(index, 1);
-      handleProfileChange('heroImages', newImages);
+      setLocalProfile(prev => {
+        const newImages = [...(prev.heroImages || [])];
+        newImages.splice(index, 1);
+        return { ...prev, heroImages: newImages };
+      });
     };
 
     return (
@@ -1959,7 +2497,7 @@ function AdminPage() {
               <label className="block text-sm font-bold text-gray-700 mb-1">School Name</label>
               <input
                 type="text"
-                value={schoolProfile.name || ''}
+                value={localProfile.name || ''}
                 onChange={(e) => handleProfileChange('name', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"
                 placeholder="e.g. Holy Name School"
@@ -1969,7 +2507,7 @@ function AdminPage() {
               <label className="block text-sm font-bold text-gray-700 mb-1">Punch Line / Tagline</label>
               <input
                 type="text"
-                value={schoolProfile.punchLine || ''}
+                value={localProfile.punchLine || ''}
                 onChange={(e) => handleProfileChange('punchLine', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"
                 placeholder="e.g. Let Your Light Shine"
@@ -1978,8 +2516,8 @@ function AdminPage() {
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">School Logo</label>
               <div className="flex items-center gap-4">
-                {schoolProfile.logo && (
-                  <img src={schoolProfile.logo} alt="Logo" className="w-16 h-16 rounded-lg object-contain border border-gray-200 bg-gray-50" />
+                {localProfile.logo && (
+                  <img src={localProfile.logo} alt="Logo" className="w-16 h-16 rounded-lg object-contain border border-gray-200 bg-gray-50" />
                 )}
                 <div className="relative overflow-hidden">
                   <button className="px-6 py-2 bg-primary/10 text-primary rounded-lg border border-primary/20 hover:bg-primary/20 font-medium transition-colors flex items-center gap-2">
@@ -2004,7 +2542,7 @@ function AdminPage() {
               <label className="block text-sm font-bold text-gray-700 mb-1">Phone Number</label>
               <input
                 type="text"
-                value={schoolProfile.phone || ''}
+                value={localProfile.phone || ''}
                 onChange={(e) => handleProfileChange('phone', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"
                 placeholder="e.g. 6901055733"
@@ -2014,7 +2552,7 @@ function AdminPage() {
               <label className="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
               <input
                 type="email"
-                value={schoolProfile.email || ''}
+                value={localProfile.email || ''}
                 onChange={(e) => handleProfileChange('email', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"
                 placeholder="e.g. holynameschool@gmail.com"
@@ -2024,7 +2562,7 @@ function AdminPage() {
               <label className="block text-sm font-bold text-gray-700 mb-1">Office Hours</label>
               <input
                 type="text"
-                value={schoolProfile.officeHours || ''}
+                value={localProfile.officeHours || ''}
                 onChange={(e) => handleProfileChange('officeHours', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary"
                 placeholder="e.g. 9am - 1:30pm (Mon - Sat)"
@@ -2033,7 +2571,7 @@ function AdminPage() {
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-gray-700 mb-1">Office Address</label>
               <textarea
-                value={schoolProfile.officeAddress || ''}
+                value={localProfile.officeAddress || ''}
                 onChange={(e) => handleProfileChange('officeAddress', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary h-20"
                 placeholder="e.g. XMH8+GGW, Nazira Ali Rd, Hatimuria, Assam 785697"
@@ -2042,7 +2580,7 @@ function AdminPage() {
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-gray-700 mb-1">Google Maps Embed Link (Src URL)</label>
               <textarea
-                value={schoolProfile.mapLink || ''}
+                value={localProfile.mapLink || ''}
                 onChange={(e) => {
                   let val = e.target.value;
                   let extracted = false;
@@ -2095,7 +2633,7 @@ function AdminPage() {
           </div>
           <p className="text-xs text-gray-500 mb-4">These images will be displayed in the sliding hero section on the top of the Home page.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {(schoolProfile.heroImages || []).map((imgUrl, idx) => (
+            {(localProfile.heroImages || []).map((imgUrl, idx) => (
               <div key={idx} className="relative group rounded-xl overflow-hidden border border-gray-200 aspect-video">
                 <img src={imgUrl} alt={`Hero ${idx}`} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -2109,7 +2647,7 @@ function AdminPage() {
                 </div>
               </div>
             ))}
-            {(!schoolProfile.heroImages || schoolProfile.heroImages.length === 0) && (
+            {(!localProfile.heroImages || localProfile.heroImages.length === 0) && (
               <div className="col-span-full py-8 text-center border-2 border-dashed border-gray-200 rounded-xl text-gray-400">
                 <FaImage className="text-3xl mx-auto mb-2 text-gray-300" />
                 <p>No hero images uploaded yet.</p>
@@ -2268,6 +2806,192 @@ function AdminPage() {
     );
   };
 
+  const renderCareersTab = () => {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-serif font-bold text-primary">Career Openings</h2>
+            <p className="text-gray-500">Manage job postings listed on the Careers page.</p>
+          </div>
+          <button 
+            onClick={() => {
+              setIsAddingJob(true);
+              setEditingJobId(null);
+              setCurrentJob({ title: '', department: 'Science', type: 'Full-Time', experience: '', qualifications: '', deadline: 'Open until filled' });
+            }}
+            className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-all shadow-md transform hover:-translate-y-1"
+          >
+            <FaPlus /> Post Job Opening
+          </button>
+        </header>
+
+        {isAddingJob && (
+          <form onSubmit={handleJobSubmit} className="bg-white p-8 rounded-3xl border border-gray-100 shadow-xl space-y-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800">{editingJobId ? 'Edit Vacancy' : 'New Job Opening'}</h3>
+              <button type="button" onClick={() => setIsAddingJob(false)} className="text-gray-400 hover:text-red-500"><FaTimes size={24} /></button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Job Title</label>
+                <input 
+                  type="text" 
+                  value={currentJob.title}
+                  onChange={(e) => setCurrentJob({...currentJob, title: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary"
+                  placeholder="e.g. Senior Secondary Teacher (Physics)"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Department</label>
+                <select 
+                  value={currentJob.department}
+                  onChange={(e) => setCurrentJob({...currentJob, department: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary"
+                >
+                  <option>Science</option>
+                  <option>Arts & Humanities</option>
+                  <option>Commerce</option>
+                  <option>Physical Education</option>
+                  <option>Administration</option>
+                  <option>Support Staff</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Job Type</label>
+                <select 
+                  value={currentJob.type}
+                  onChange={(e) => setCurrentJob({...currentJob, type: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary"
+                >
+                  <option>Full-Time</option>
+                  <option>Part-Time</option>
+                  <option>Contract</option>
+                  <option>Temporary</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Minimum Experience</label>
+                <input 
+                  type="text" 
+                  value={currentJob.experience}
+                  onChange={(e) => setCurrentJob({...currentJob, experience: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary"
+                  placeholder="e.g. 3+ Years"
+                  required
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Required Qualifications (Comma separated)</label>
+                <input 
+                  type="text" 
+                  value={currentJob.qualifications}
+                  onChange={(e) => setCurrentJob({...currentJob, qualifications: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary"
+                  placeholder="Master's in Physics, B.Ed. preferred..."
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Application Deadline</label>
+                <input 
+                  type="text" 
+                  value={currentJob.deadline}
+                  onChange={(e) => setCurrentJob({...currentJob, deadline: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary"
+                  placeholder="e.g. Oct 30, 2026 or Open until filled"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <button 
+                type="button" 
+                onClick={() => setIsAddingJob(false)}
+                className="px-6 py-3 border border-gray-200 rounded-xl font-bold text-gray-500 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit"
+                className="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:opacity-90 shadow-md"
+              >
+                {editingJobId ? 'Save Changes' : 'Post Vacancy'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {jobsLoading ? (
+             <div className="col-span-full flex justify-center py-20">
+               <FaSpinner className="animate-spin text-4xl text-primary opacity-50" />
+             </div>
+          ) : jobs.length === 0 ? (
+            <div className="col-span-full bg-white border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center text-gray-400">
+              <FaBriefcase className="text-5xl mx-auto mb-4 opacity-20" />
+              <p className="text-lg font-medium">No job vacancies posted yet.</p>
+              <p className="text-sm">Active openings will show up on the public careers page.</p>
+            </div>
+          ) : jobs.map(job => (
+            <div key={job._id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex justify-between items-start gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] uppercase font-black">{job.department}</span>
+                  <span className="text-gray-400 text-xs">{job.type}</span>
+                </div>
+                <h4 className="text-xl font-bold text-gray-800 truncate">{job.title}</h4>
+                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                  <div className="flex items-center text-gray-500">
+                    <FaChalkboardTeacher className="mr-2 text-primary/50" /> {job.experience}
+                  </div>
+                  <div className="flex items-center text-gray-500">
+                    <FaCalendarAlt className="mr-2 text-amber-500/50" /> Until: {job.deadline}
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {job.qualifications.map((q, i) => (
+                    <span key={i} className="px-2 py-0.5 bg-gray-50 border border-gray-100 rounded text-[10px] text-gray-600">{q}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 shrink-0">
+                <button 
+                  onClick={() => {
+                    setEditingJobId(job._id);
+                    setIsAddingJob(true);
+                    setCurrentJob({
+                      title: job.title,
+                      department: job.department,
+                      type: job.type,
+                      experience: job.experience,
+                      qualifications: job.qualifications.join(', '),
+                      deadline: job.deadline
+                    });
+                  }}
+                  className="p-3 text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-colors" 
+                  title="Edit Opening"
+                >
+                  <FaEdit />
+                </button>
+                <button 
+                  onClick={() => handleDeleteJob(job._id)}
+                  className="p-3 text-red-500 bg-red-50 hover:bg-red-100 rounded-xl transition-colors" 
+                  title="Remove Posting"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-surface flex font-sans relative overflow-x-hidden">
       {/* Sidebar Overlay for Mobile */}
@@ -2287,7 +3011,7 @@ function AdminPage() {
       `}>
         <div className="p-6 border-b border-white/10 flex items-center justify-between shrink-0">
           <h2 className="text-xl md:text-2xl font-headline font-bold text-tertiary tracking-wider">
-            Holy Name
+            {schoolProfile?.name || "School"}
             <span className="text-white text-[10px] md:text-sm block tracking-normal mt-1 opacity-80 text-center">Admin Panel</span>
           </h2>
           <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-white hover:text-tertiary transition-colors">
@@ -2315,6 +3039,7 @@ function AdminPage() {
             { id: 'faculty', label: 'Faculty', icon: <FaChalkboardTeacher /> },
             { id: 'principal', label: 'Principal Desk', icon: <FaClipboardList /> },
             { id: 'alumni', label: 'Alumni', icon: <FaGraduationCap /> },
+            { id: 'careerAds', label: 'Career Ads', icon: <FaBriefcase /> },
             { id: 'socialMedia', label: 'Social Media', icon: <FaShareAlt /> },
             { id: 'stats', label: 'Home Stats', icon: <FaChartLine /> },
             { id: 'about', label: 'About Page', icon: <FaInfoCircle /> }
@@ -2353,6 +3078,13 @@ function AdminPage() {
                 {inquiries.filter(i => !i.isRead).length}
               </span>
             )}
+          </button>
+
+          <button 
+            onClick={() => { setActiveTab('jobApplications'); setIsSidebarOpen(false); }}
+            className={`flex items-center w-full px-4 py-3 mt-2 rounded-xl transition-all ${activeTab === 'jobApplications' ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
+          >
+            <FaBriefcase className="mr-3 text-lg" /> Recruitment
           </button>
 
           {adminUser?.role === 'superadmin' && (
@@ -2424,6 +3156,7 @@ function AdminPage() {
           { activeTab === 'stats' && renderStatsTab() }
           {activeTab === 'schoolProfile' && renderSchoolProfileTab()}
           {activeTab === 'about' && renderAboutTab()}
+          {activeTab === 'careerAds' && renderCareersTab()}
           {activeTab === 'admins' && adminUser?.role === 'superadmin' && renderAdminsTab()}
           {activeTab === 'settings' && adminUser?.role === 'superadmin' && renderSettingsTab()}
           {activeTab === 'applications' && (
@@ -2459,7 +3192,7 @@ function AdminPage() {
                     </thead>
                     <tbody>
                       {filteredApps.map(app => (
-                        <tr key={app._id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <tr key={app._id} className="border-b border-gray-100 hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A]">
                           <td className="py-3 font-medium text-sm text-gray-900">{app.referenceNumber || app._id.slice(-6).toUpperCase()}</td>
                           <td className="py-3 font-medium">{app.studentName}</td>
                           <td className="py-3 text-gray-600">{app.gradeApplied}</td>
@@ -2688,9 +3421,241 @@ function AdminPage() {
               )}
             </div>
           )}
+
+          {activeTab === 'jobApplications' && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h3 className="text-xl font-bold text-gray-800">Job Applications</h3>
+                <div className="flex gap-2 text-xs font-black uppercase text-gray-400">
+                   Total Received: {jobApplications.length}
+                </div>
+              </div>
+
+              {jobApplicationsLoading ? (
+                <div className="text-center py-20">
+                  <FaSpinner className="animate-spin text-primary text-4xl mx-auto mb-4" />
+                  <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Loading Applications...</p>
+                </div>
+              ) : jobApplications.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  <FaBriefcase className="mx-auto text-gray-300 text-4xl mb-3" />
+                  <p className="text-gray-500">No applications received yet.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-200 text-xs text-gray-400 font-black uppercase tracking-widest">
+                        <th className="pb-3 px-2">Ref No.</th>
+                        <th className="pb-3">Candidate</th>
+                        <th className="pb-3">Qualification</th>
+                        <th className="pb-3">Experience</th>
+                        <th className="pb-3">Status</th>
+                        <th className="pb-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {jobApplications.map(app => (
+                        <tr key={app._id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 px-2 font-mono text-xs font-bold text-blue-600">{app.referenceNumber}</td>
+                          <td className="py-4 font-bold text-gray-800">{app.fullName}</td>
+                          <td className="py-4 text-sm text-gray-600">{app.qualification}</td>
+                          <td className="py-4 text-sm text-gray-600">{app.totalExperience}</td>
+                          <td className="py-4">
+                            <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase border ${
+                              app.status === 'shortlisted' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                              app.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                              'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>{app.status}</span>
+                          </td>
+                          <td className="py-4 text-right">
+                             <button onClick={() => setSelectedJobApp(app)} className="text-primary hover:underline font-bold text-sm mr-4">View Detail</button>
+                             <button 
+                               onClick={async () => {
+                                 if(window.confirm(`Delete application from ${app.fullName}?`)) {
+                                   try {
+                                      const token = localStorage.getItem('adminToken');
+                                      await axios.delete(`${API_URL}/job-applications/${app._id}`, {
+                                        headers: { Authorization: `Bearer ${token}` }
+                                      });
+                                      setJobApplications(jobApplications.filter(a => a._id !== app._id));
+                                   } catch(err) {
+                                     alert("Failed to delete: " + err.message);
+                                   }
+                                 }
+                               }} 
+                               className="text-red-400 hover:text-red-600 transition-colors"
+                             >
+                                <FaTrash size={12} />
+                             </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </main>
 
         {/* --- Application View Modal --- */}
+        {/* --- Job Application View Modal --- */}
+        {selectedJobApp && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
+              <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">Job Candidate Details</h2>
+                  <p className="text-sm text-gray-500">Ref: <span className="font-mono font-bold text-blue-600">{selectedJobApp.referenceNumber}</span></p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => handleDownloadJobPDF(selectedJobApp)}
+                    className="flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl font-bold transition-all text-sm"
+                    title="Download Application PDF"
+                  >
+                    <FaDownload />
+                    <span className="hidden sm:inline">Download PDF</span>
+                  </button>
+                  <button onClick={() => setSelectedJobApp(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+                    <FaPlus className="rotate-45 text-2xl" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-8">
+                {/* Header Info */}
+                <div className="flex flex-col md:flex-row gap-8 mb-10 pb-8 border-b border-gray-100">
+                  {selectedJobApp.photo && (
+                    <img src={selectedJobApp.photo} alt="Candidate" className="w-32 h-32 rounded-2xl object-cover border-4 border-white shadow-xl" />
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-3xl font-bold text-gray-900 mb-2">{selectedJobApp.fullName}</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                      <p><span className="text-gray-400 font-bold uppercase text-[10px] block">Email</span> <span className="font-medium">{selectedJobApp.email}</span></p>
+                      <p><span className="text-gray-400 font-bold uppercase text-[10px] block">Phone</span> <span className="font-medium">{selectedJobApp.phone}</span></p>
+                      <p><span className="text-gray-400 font-bold uppercase text-[10px] block">DOB / Age</span> <span className="font-medium">{selectedJobApp.dob} ({selectedJobApp.age} Years)</span></p>
+                      <p><span className="text-gray-400 font-bold uppercase text-[10px] block">Gender</span> <span className="font-medium capitalize">{selectedJobApp.gender}</span></p>
+                      <p><span className="text-gray-400 font-bold uppercase text-[10px] block">Caste / Religion</span> <span className="font-medium uppercase">{selectedJobApp.caste} / {selectedJobApp.religion}</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  {/* Left Column: Details */}
+                  <div className="space-y-8">
+                    <section>
+                      <h4 className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-4">Qualifications & Experience</h4>
+                      <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
+                        <p><span className="text-xs text-gray-400 block font-bold">Highest Qualification</span> <span className="font-bold text-gray-800">{selectedJobApp.qualification}</span></p>
+                        <p><span className="text-xs text-gray-400 block font-bold">Status</span> <span className="font-bold text-gray-800">{selectedJobApp.isExperienced ? 'Experienced Professional' : 'Fresher / Entry Level'}</span></p>
+                        {selectedJobApp.isExperienced && (
+                          <>
+                            <p><span className="text-xs text-gray-400 block font-bold">Previous School</span> <span className="font-bold text-gray-800">{selectedJobApp.schoolName}</span></p>
+                            <p><span className="text-xs text-gray-400 block font-bold">Exp Years</span> <span className="font-bold text-gray-800">{selectedJobApp.totalExperience}</span></p>
+                            <p><span className="text-xs text-gray-400 block font-bold">UDISE Code</span> <span className="font-bold text-gray-800 font-mono">{selectedJobApp.udiseCode}</span></p>
+                          </>
+                        )}
+                      </div>
+                    </section>
+                    <section>
+                      <h4 className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-4">Identity & Address</h4>
+                      <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
+                        <p><span className="text-xs text-gray-400 block font-bold">Aadhar Number</span> <span className="font-mono font-medium">{selectedJobApp.aadhar}</span></p>
+                        <p><span className="text-xs text-gray-400 block font-bold">PAN Number</span> <span className="font-mono font-medium">{selectedJobApp.pan}</span></p>
+                        <p><span className="text-xs text-gray-400 block font-bold">Full Address</span> <span className="text-sm leading-relaxed">{selectedJobApp.address}, {selectedJobApp.postOffice}, {selectedJobApp.policeStation}, {selectedJobApp.pincode}</span></p>
+                      </div>
+                    </section>
+                  </div>
+
+                  {/* Right Column: Files */}
+                  <div>
+                    <h4 className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-4">Submitted Documents</h4>
+                    <div className="grid grid-cols-1 gap-3">
+                      {[
+                        { label: 'Resume / CV', key: 'resume', icon: <FaClipboardList className="text-blue-500" /> },
+                        { label: 'Signature', key: 'signature', icon: <FaEdit className="text-gray-500" /> },
+                        { label: 'Class 10 Marksheet', key: 'marksheet10', icon: <FaClipboardList /> },
+                        { label: 'Class 10 Pass Cert', key: 'cert10', icon: <FaCheckCircle /> },
+                        { label: 'Class 12 Marksheet', key: 'marksheet12', icon: <FaClipboardList /> },
+                        { label: 'Class 12 Pass Cert', key: 'cert12', icon: <FaCheckCircle /> },
+                        { label: 'UG Marksheet', key: 'marksheetUG', icon: <FaClipboardList /> },
+                        { label: 'UG Pass Cert', key: 'certUG', icon: <FaCheckCircle /> },
+                        { label: 'PG Marksheet', key: 'marksheetPG', icon: <FaClipboardList /> },
+                        { label: 'PG Pass Cert', key: 'certPG', icon: <FaCheckCircle /> },
+                        { label: 'B.Ed Marksheet', key: 'marksheetBEd', icon: <FaClipboardList /> },
+                        { label: 'B.Ed Pass Cert', key: 'certBEd', icon: <FaCheckCircle /> },
+                        { label: 'D.Led Marksheet', key: 'marksheetDLed', icon: <FaClipboardList /> },
+                        { label: 'D.Led Pass Cert', key: 'certDLed', icon: <FaCheckCircle /> },
+                        { label: 'Experience Cert', key: 'expCertificate', icon: <FaBriefcase /> },
+                        { label: 'Caste Cert', key: 'casteCertificate', icon: <FaIdCard /> },
+                      ].map(doc => (
+                        selectedJobApp[doc.key] ? (
+                          <a 
+                            key={doc.key} 
+                            href={selectedJobApp[doc.key]} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl hover:border-primary hover:shadow-md transition-all group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                              {doc.icon}
+                            </div>
+                            <span className="text-xs font-bold text-gray-700">{doc.label}</span>
+                            <FaDownload className="ml-auto text-gray-300 group-hover:text-primary transition-colors" size={12} />
+                          </a>
+                        ) : null
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-gray-50 border-t flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-2">Update Status:</span>
+                  <select 
+                    value={selectedJobApp.status}
+                    onChange={async (e) => {
+                      try {
+                         const newStatus = e.target.value;
+                         const token = localStorage.getItem('adminToken');
+                         await axios.patch(`${API_URL}/job-applications/${selectedJobApp._id}/status`, 
+                           { status: newStatus },
+                           { headers: { Authorization: `Bearer ${token}` }}
+                         );
+                         setSelectedJobApp({ ...selectedJobApp, status: newStatus });
+                         setJobApplications(jobApplications.map(a => a._id === selectedJobApp._id ? { ...a, status: newStatus } : a));
+                         alert("Status updated successfully.");
+                      } catch(err) {
+                        alert("Update failed: " + err.message);
+                      }
+                    }}
+                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border-2 outline-none focus:ring-2 focus:ring-primary/20 transition-all ${
+                      selectedJobApp.status === 'shortlisted' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                      selectedJobApp.status === 'rejected' ? 'bg-red-50 text-red-700 border-red-200' :
+                      'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="shortlisted">Shortlisted</option>
+                    <option value="interviewed">Interviewed</option>
+                    <option value="hired">Hired</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+                <button
+                  onClick={() => setSelectedJobApp(null)}
+                  className="bg-gray-800 text-white font-bold px-8 py-3 rounded-xl hover:bg-gray-900 transition-all shadow-lg"
+                >
+                  Close Detail
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {selectedApp && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
             <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
@@ -2699,42 +3664,116 @@ function AdminPage() {
                   <h2 className="text-2xl font-bold text-gray-800">Student Application Details</h2>
                   <p className="text-sm text-gray-500">App ID: {selectedApp.referenceNumber || selectedApp._id.slice(-6).toUpperCase()}</p>
                 </div>
-                <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
-                  <FaPlus className="rotate-45 text-2xl" />
-                </button>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => handleDownloadPDF(selectedApp)}
+                    className="flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl font-bold transition-all text-sm"
+                    title="Download Application PDF"
+                  >
+                    <FaDownload />
+                    <span className="hidden sm:inline">Download PDF</span>
+                  </button>
+                  <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
+                    <FaPlus className="rotate-45 text-2xl" />
+                  </button>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+                {/* Student Photo */}
+                {selectedApp.studentPhoto && (
+                  <div className="flex justify-center mb-8">
+                    <img src={selectedApp.studentPhoto} alt="Student" className="w-28 h-28 rounded-2xl object-cover border-4 border-primary/20 shadow-lg" />
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
                   <div className="col-span-1 border-r border-gray-100 pr-4">
                     <h4 className="text-xs uppercase font-bold text-gray-400 mb-3 tracking-widest">Personal Information</h4>
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Name:</span> <span className="text-gray-900 font-medium block text-lg">{selectedApp.studentName}</span></p>
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Grade Applied:</span> <span className="font-medium uppercase text-sm bg-primary/10 text-primary px-2 py-1 rounded inline-block mt-1">{selectedApp.gradeApplied}</span></p>
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">DOB:</span> <span className="text-gray-900 block">{selectedApp.dateOfBirth}</span></p>
+                    {selectedApp.placeOfBirth && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Place of Birth:</span> <span className="text-gray-900 block">{selectedApp.placeOfBirth}</span></p>}
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Gender:</span> <span className="text-gray-900 block">{selectedApp.gender}</span></p>
+                    {selectedApp.bloodGroup && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Blood Group:</span> <span className="text-gray-900 block">{selectedApp.bloodGroup}</span></p>}
+                    {selectedApp.religion && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Religion:</span> <span className="text-gray-900 block">{selectedApp.religion}</span></p>}
+                    {selectedApp.caste && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Caste:</span> <span className="text-gray-900 block">{selectedApp.caste}</span></p>}
                   </div>
                   <div className="col-span-1 border-r border-gray-100 pr-4">
                     <h4 className="text-xs uppercase font-bold text-gray-400 mb-3 tracking-widest">Parent/Guardian</h4>
-                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Guardian:</span> <span className="text-gray-900 block">{selectedApp.guardianName} ({selectedApp.relationship})</span></p>
-                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Father:</span> <span className="text-gray-900 block">{selectedApp.fatherName}</span></p>
-                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Mother:</span> <span className="text-gray-900 block">{selectedApp.motherName}</span></p>
+                    {selectedApp.guardianName && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Guardian:</span> <span className="text-gray-900 block">{selectedApp.guardianName} {selectedApp.relationship ? `(${selectedApp.relationship})` : ''}</span></p>}
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Father:</span> <span className="text-gray-900 block">{selectedApp.fatherName || 'N/A'}</span></p>
+                    {selectedApp.fatherOccupation && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Father's Occupation:</span> <span className="text-gray-900 block">{selectedApp.fatherOccupation}</span></p>}
+                    <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Mother:</span> <span className="text-gray-900 block">{selectedApp.motherName || 'N/A'}</span></p>
+                    {selectedApp.motherOccupation && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Mother's Occupation:</span> <span className="text-gray-900 block">{selectedApp.motherOccupation}</span></p>}
                   </div>
                   <div className="col-span-1">
                     <h4 className="text-xs uppercase font-bold text-gray-400 mb-3 tracking-widest">Contact Info</h4>
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Phone:</span> <span className="text-gray-900 block font-bold text-lg">{selectedApp.contactNumber}</span></p>
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Email:</span> <span className="text-gray-900 block break-words">{selectedApp.email}</span></p>
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Address:</span> <span className="text-gray-900 block text-xs leading-relaxed">{selectedApp.address}</span></p>
+                    {selectedApp.po && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Post Office:</span> <span className="text-gray-900 block">{selectedApp.po}</span></p>}
+                    {selectedApp.ps && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Police Station:</span> <span className="text-gray-900 block">{selectedApp.ps}</span></p>}
+                    {selectedApp.pincode && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Pincode:</span> <span className="text-gray-900 block">{selectedApp.pincode}</span></p>}
                   </div>
                 </div>
 
+                {/* Identity & ID Numbers */}
+                {(selectedApp.aadharNumber || selectedApp.penNumber) && (
+                  <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 mb-10">
+                    <h4 className="text-xs uppercase font-bold text-gray-400 mb-4 tracking-widest">Identity Details</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {selectedApp.aadharNumber && <p><span className="font-semibold text-gray-600 text-sm">Aadhar Number:</span> <span className="text-gray-900 block font-mono">{selectedApp.aadharNumber}</span></p>}
+                      {selectedApp.penNumber && <p><span className="font-semibold text-gray-600 text-sm">PEN (Permanent Education No.):</span> <span className="text-gray-900 block font-mono">{selectedApp.penNumber}</span></p>}
+                    </div>
+                  </div>
+                )}
+
                 <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100 mb-10">
                   <h4 className="text-xs uppercase font-bold text-gray-400 mb-4 tracking-widest">Academic Background</h4>
-                  <p><span className="font-semibold text-gray-600">Previous School:</span> <span className="text-gray-900">{selectedApp.previousSchool || 'N/A'}</span></p>
+                  <p className="mb-2"><span className="font-semibold text-gray-600">Previous School:</span> <span className="text-gray-900">{selectedApp.previousSchool || 'N/A'}</span></p>
+                  {selectedApp.stream && <p className="mb-2"><span className="font-semibold text-gray-600">Stream:</span> <span className="text-gray-900">{selectedApp.stream}</span></p>}
+                  {selectedApp.elective && <p className="mb-2"><span className="font-semibold text-gray-600">Elective:</span> <span className="text-gray-900">{selectedApp.elective}</span></p>}
+                  {selectedApp.mil && <p className="mb-2"><span className="font-semibold text-gray-600">MIL (Modern Indian Language):</span> <span className="text-gray-900">{selectedApp.mil}</span></p>}
+                  {selectedApp.selectedSubjects && selectedApp.selectedSubjects.length > 0 && (
+                    <div className="mt-2">
+                      <span className="font-semibold text-gray-600 text-sm">Selected Subjects:</span>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {selectedApp.selectedSubjects.map((subj, idx) => (
+                          <span key={idx} className="bg-primary/10 text-primary text-xs font-bold px-2.5 py-1 rounded-lg">{subj}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <h4 className="text-xs uppercase font-bold text-gray-400 mb-4 tracking-widest">Documents Provided</h4>
                   <div className="flex flex-wrap gap-4">
+                    {selectedApp.studentPhoto ? (
+                      <a href={selectedApp.studentPhoto} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 hover:border-amber-500 hover:shadow-md transition-all group">
+                        <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                          <FaClipboardList />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Student Photo</p>
+                          <p className="text-xs text-gray-500">Click to view file</p>
+                        </div>
+                      </a>
+                    ) : null}
+
+                    {selectedApp.birthCertificate ? (
+                      <a href={selectedApp.birthCertificate} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 hover:border-amber-500 hover:shadow-md transition-all group">
+                        <div className="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center group-hover:bg-green-500 group-hover:text-white transition-colors">
+                          <FaClipboardList />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Birth Certificate</p>
+                          <p className="text-xs text-gray-500">Click to view file</p>
+                        </div>
+                      </a>
+                    ) : null}
+
                     {selectedApp.transferCertificate ? (
                       <a href={selectedApp.transferCertificate} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 hover:border-amber-500 hover:shadow-md transition-all group">
                         <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
@@ -2745,7 +3784,7 @@ function AdminPage() {
                           <p className="text-xs text-gray-500">Click to view file</p>
                         </div>
                       </a>
-                    ) : <p className="text-sm text-gray-400 italic">No TC provided</p>}
+                    ) : null}
                     
                     {selectedApp.marksheet ? (
                       <a href={selectedApp.marksheet} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 hover:border-amber-500 hover:shadow-md transition-all group">
@@ -2757,7 +3796,23 @@ function AdminPage() {
                           <p className="text-xs text-gray-500">Click to view file</p>
                         </div>
                       </a>
-                    ) : <p className="text-sm text-gray-400 italic">No Marksheet provided</p>}
+                    ) : null}
+
+                    {selectedApp.aadharVidOrReceipt ? (
+                      <a href={selectedApp.aadharVidOrReceipt} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 hover:border-amber-500 hover:shadow-md transition-all group">
+                        <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                          <FaClipboardList />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">Aadhar VID / Receipt</p>
+                          <p className="text-xs text-gray-500">Click to view file</p>
+                        </div>
+                      </a>
+                    ) : null}
+
+                    {!selectedApp.studentPhoto && !selectedApp.birthCertificate && !selectedApp.transferCertificate && !selectedApp.marksheet && !selectedApp.aadharVidOrReceipt && (
+                      <p className="text-sm text-gray-400 italic">No documents provided</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -2814,7 +3869,7 @@ function AdminPage() {
                     required
                     value={otpString}
                     onChange={(e) => setOtpString(e.target.value)}
-                    className="w-full p-3 border rounded-xl font-mono text-center tracking-widest text-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="w-full p-3 border rounded-xl font-mono text-center tracking-widest text-lg bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:ring-2 focus:ring-primary/20 transition-all"
                     placeholder="Enter 6 digit OTP"
                     maxLength={6}
                   />
@@ -2832,7 +3887,7 @@ function AdminPage() {
                       required
                       value={newAdminOtpString}
                       onChange={(e) => setNewAdminOtpString(e.target.value)}
-                      className="w-full p-3 border rounded-xl font-mono text-center tracking-widest text-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all"
+                      className="w-full p-3 border rounded-xl font-mono text-center tracking-widest text-lg bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:ring-2 focus:ring-primary/20 transition-all"
                       placeholder="Enter 6 digit OTP"
                       maxLength={6}
                     />

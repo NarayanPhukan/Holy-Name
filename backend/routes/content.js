@@ -39,7 +39,7 @@ router.get('/', async (req, res) => {
 router.put('/', protect, async (req, res) => {
   try {
     const updateData = req.body;
-    const allowedFields = ['gallery', 'events', 'highlights', 'videos', 'faculty', 'principal', 'notices', 'notificationEmail', 'banner', 'socialLinks', 'alumni', 'stats'];
+    const allowedFields = ['gallery', 'events', 'highlights', 'videos', 'faculty', 'principal', 'notices', 'notificationEmail', 'banner', 'socialLinks', 'alumni', 'stats', 'schoolProfile', 'visionStatement', 'aimsAndObjectives', 'headMistress'];
     
     // Pick only allowed fields
     const safeUpdateData = {};

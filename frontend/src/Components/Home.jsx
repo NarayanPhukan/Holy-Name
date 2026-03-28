@@ -13,15 +13,7 @@ function Home() {
   const { videos, stats, schoolProfile } = useContext(SiteDataContext);
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  const defaultImages = [
-    "/Pictures/1.JPG",
-    "/Pictures/2.JPG",
-    "/Pictures/3.JPG",
-    "/Pictures/4.JPG",
-    "/Pictures/5.JPG",
-    "/Pictures/6.JPG",
-  ];
-  const images = schoolProfile?.heroImages?.length > 0 ? schoolProfile.heroImages : defaultImages;
+  const images = schoolProfile?.heroImages?.length > 0 ? schoolProfile.heroImages : [];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -42,7 +34,7 @@ function Home() {
             {images.map((img, idx) => (
               <img
                 key={idx}
-                src={img}
+                src={img || null}
                 alt={`School Image ${idx}`}
                 className={`w-full h-full object-cover transition-opacity duration-1000 ease-in-out absolute inset-0 ${
                   idx === currentIndex ? "opacity-80" : "opacity-0"
@@ -74,7 +66,7 @@ function Home() {
                 of Tomorrow.
               </h2>
               <p className="text-primary-fixed text-base md:text-lg max-w-xl font-medium leading-relaxed">
-                {schoolProfile?.name || "Holy Name School"} offers a transformative
+                {schoolProfile?.name || "Our School"} offers a transformative
                 academic journey that bridges traditional values with futuristic
                 learning architectures.
               </p>
@@ -161,7 +153,7 @@ function Home() {
               }`}
             >
               {stats.map((stat, idx) => (
-                <div key={stat.id || idx} className="text-center space-y-1 p-4 rounded-[1.5rem] bg-surface-container-low border border-outline-variant/30 hover:bg-white hover:shadow-2xl hover:-translate-y-2 transition-all duration-500">
+                <div key={stat.id || idx} className="text-center space-y-1 p-4 rounded-[1.5rem] bg-surface-container-low border border-outline-variant/30 hover:bg-white:bg-[#1E293B]:bg-[#1E293B] hover:shadow-2xl hover:-translate-y-2 transition-all duration-500">
                   <div className="text-3xl md:text-4xl font-black text-primary academic-serif">
                     {stat.value}
                   </div>

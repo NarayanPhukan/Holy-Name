@@ -71,14 +71,14 @@ function Courses() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {levels.map((level, index) => (
-            <div key={index} className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group relative overflow-hidden">
+            <div key={index} className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl:shadow-none:shadow-none transition-all duration-300 border border-gray-100 group relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
               <div className="relative z-10">
                 <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center mb-6 shadow-md">
                   {level.icon}
                 </div>
                 <h3 className="text-2xl font-serif font-bold text-primary mb-3">{level.title}</h3>
-                <p className="text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors">
+                <p className="text-gray-600 leading-relaxed group-hover:text-gray-800:text-gray-100:text-gray-100 transition-colors">
                   {level.desc}
                 </p>
               </div>
@@ -107,7 +107,7 @@ function Courses() {
                     className={`px-6 py-2.5 rounded-full font-medium text-sm md:text-base transition-all duration-300 shadow-sm ${
                       selectedCategory === category
                         ? "bg-primary text-white shadow-md transform scale-105"
-                        : "bg-white text-gray-600 hover:bg-white hover:text-primary hover:shadow-md border border-gray-200"
+                        : "bg-white text-gray-600 hover:bg-white:bg-[#1E293B]:bg-[#1E293B] hover:text-primary hover:shadow-md border border-gray-200"
                     }`}
                   >
                     {category === "Science" && <FaAtom className="inline-block mr-2 -mt-1" />}

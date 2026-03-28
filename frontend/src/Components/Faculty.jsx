@@ -41,12 +41,12 @@ function Faculty() {
   const { faculty: facultyData } = useContext(SiteDataContext);
 
   const FacultyCard = ({ member }) => (
-    <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col items-center text-center relative overflow-hidden">
+    <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl:shadow-none:shadow-none transition-all duration-300 border border-gray-100 group flex flex-col items-center text-center relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-24 bg-primary opacity-5 group-hover:opacity-10 transition-opacity"></div>
       <div className="relative z-10 w-32 h-32 mb-6">
         <div className="absolute inset-0 bg-amber-400 rounded-full blur-sm opacity-20 group-hover:opacity-60 transition-opacity duration-300 transform group-hover:scale-110"></div>
         <img
-          src={member.photo}
+          src={member.photo || null}
           alt={member.name}
           className="w-full h-full object-cover rounded-full border-4 border-white shadow-md relative z-10"
         />

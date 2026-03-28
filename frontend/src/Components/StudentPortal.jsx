@@ -371,7 +371,7 @@ function StudentPortal() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 pt-6 border-t border-gray-100">
                   <button
                     onClick={() => window.print()}
-                    className="text-gray-600 font-bold hover:text-primary transition-colors flex items-center px-5 py-2.5 rounded-xl hover:bg-gray-50"
+                    className="text-gray-600 font-bold hover:text-primary transition-colors flex items-center px-5 py-2.5 rounded-xl hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A]"
                   >
                     <FaPrint className="mr-2" />
                     Print Details
@@ -407,19 +407,19 @@ function StudentPortal() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm">
             <a
-              href={`tel:${schoolProfile?.phone || "6901055733"}`}
+              href={`tel:${schoolProfile?.phone || ""}`}
               className="flex items-center text-gray-700 font-medium hover:text-primary transition-colors"
             >
               <FaPhoneAlt className="text-amber-500 mr-2" />
-              {schoolProfile?.phone || "6901055733"}
+              {schoolProfile?.phone}
             </a>
             <span className="hidden sm:inline text-gray-300">|</span>
             <a
-              href={`mailto:${schoolProfile?.email || "holynameschool@gmail.com"}`}
+              href={`mailto:${schoolProfile?.email || ""}`}
               className="flex items-center text-gray-700 font-medium hover:text-primary transition-colors"
             >
               <FaEnvelope className="text-amber-500 mr-2" />
-              {schoolProfile?.email || "holynameschool@gmail.com"}
+              {schoolProfile?.email}
             </a>
           </div>
           {schoolProfile?.officeHours && (

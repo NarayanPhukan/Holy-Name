@@ -72,7 +72,7 @@ const EventsSection = () => {
           Our Events
         </h2>
         <p className="text-slate-400 max-w-2xl mx-auto font-light">
-          Experience the vibrant life at {schoolProfile?.name || "Holy Name School"} through our academic,
+          Experience the vibrant life at {schoolProfile?.name || "School"} through our academic,
           cultural, and sporting celebrations.
         </p>
       </div>
@@ -90,7 +90,7 @@ const EventsSection = () => {
               className="relative group cursor-pointer w-full aspect-square bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl shadow-2xl transition-all duration-300 sm:hover:-translate-y-2 overflow-hidden"
             >
               <img
-                src={event.image}
+                src={event.image || null}
                 alt={event.title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90"
               />
@@ -177,7 +177,7 @@ const EventsSection = () => {
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={currentPhotoIndex}
-                      src={gallery[currentPhotoIndex]}
+                      src={gallery[currentPhotoIndex] || null}
                       alt={`${selectedEvent.title} — ${currentPhotoIndex + 1}`}
                       initial={{ opacity: 0, x: 40 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -243,7 +243,7 @@ const EventsSection = () => {
                         {selectedEvent.title}
                       </h3>
                       <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 max-w-xl">
-                        {selectedEvent.description || `Captured moments at ${schoolProfile?.name || "Holy Name School"}.`}
+                        {selectedEvent.description || `Captured moments at ${schoolProfile?.name || "School"}.`}
                       </p>
                     </div>
 

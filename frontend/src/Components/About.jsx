@@ -254,7 +254,7 @@ const About = () => {
                   </p>
                   <p className="font-bold text-primary">
                     Fr. Hemanta has also introduced NCC & Scouts and Guides for the
-                    first time in {schoolProfile?.name || "Holy Name School"} and still counting...
+                    first time in {schoolProfile?.name || "School"} and still counting...
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <img src="/Pictures/about/Chemistry Lab (1).jpg" className="w-full h-24 object-cover rounded-xl shadow-md border hover:scale-110 transition" />
@@ -336,7 +336,7 @@ const About = () => {
                     {headMistress?.signature && (
                       <div className="flex flex-col items-start pt-4 border-t border-outline-variant mt-4">
                         <img 
-                          src={headMistress.signature} 
+                          src={headMistress.signature || null} 
                           alt="Signature" 
                           className="h-16 mb-2 opacity-70 mix-blend-multiply flex-shrink-0"
                         />

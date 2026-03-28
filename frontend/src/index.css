@@ -15,8 +15,8 @@
 }
 body { 
     font-family: 'Inter', sans-serif; 
-    background: linear-gradient(135deg, #f4f8ff 0%, #f8efff 50%, #fcf7ff 100%);
     min-height: 100vh;
+    @apply bg-gradient-to-br from-[#eff6ff] via-[#f1f5f9] to-[#ffffff] text-slate-900;
 }
 .academic-serif { font-family: 'Poppins', sans-serif; }
 .glass-nav {
