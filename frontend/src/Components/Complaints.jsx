@@ -174,18 +174,31 @@ function Complaints() {
   };
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20 pt-8">
       {/* Hero Section */}
-      <section className="relative w-full h-[35vh] min-h-[250px] flex items-center justify-center bg-gradient-to-r from-primary to-primary-container overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative z-10 text-center px-4 w-full max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight flex items-center justify-center">
-            <FaCommentDots className="text-amber-500 mr-4 drop-shadow-lg" />
-            Feedback
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop"
+            alt="Feedback"
+            className="w-full h-full object-cover opacity-95"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-left">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
+            <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
+              chat_bubble
+            </span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-white drop-shadow-sm">
+              We Value Your Input
+            </span>
+          </div>
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-lg">
+            Submit <span className="text-secondary italic drop-shadow-md">Feedback</span>
           </h1>
-          <p className="text-lg md:text-xl text-white/90 font-light max-w-2xl mx-auto">
-            Your suggestions and feedback help us continuously improve the Holy Name experience.
+          <p className="text-white/95 text-lg mt-4 max-w-2xl hidden md:block font-medium drop-shadow-md">
+            Your suggestions and feedback help us continuously improve the Holy Name experience for everyone.
           </p>
         </div>
       </section>

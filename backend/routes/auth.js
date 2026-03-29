@@ -16,7 +16,10 @@ const transporter = nodemailer.createTransport({
 });
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' }); // Reduced from 30d for security
 };
 
 // GET /api/auth/me
@@ -70,19 +73,26 @@ router.post('/request-otp', protect, async (req, res) => {
     const { newEmail, targetEmail, actionType } = req.body;
     const recipientEmail = targetEmail || newEmail;
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digits
+    // Use crypto for secure random OTP generation
+    const crypto = require('crypto');
+    const bcrypt = require('bcryptjs');
+    const otp = crypto.randomInt(100000, 999999).toString();
+    // Hash OTP for storage
+    const hashedOtp = await bcrypt.hash(otp, 10);
     const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    const updateQuery = { $set: { otp: otp, otpExpires: expires } };
+    const updateQuery = { $set: { otp: hashedOtp, otpExpires: expires } };
     let newAdminOtp = undefined;
+    let hashedNewAdminOtp = undefined;
 
     if (recipientEmail) {
-      newAdminOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      updateQuery.$set.newAdminOtp = newAdminOtp;
+      newAdminOtp = crypto.randomInt(100000, 999999).toString();
+      hashedNewAdminOtp = await bcrypt.hash(newAdminOtp, 10);
+      updateQuery.$set.newAdminOtp = hashedNewAdminOtp;
       updateQuery.$set.newAdminOtpExpires = expires;
     }
 
-    // Store in current superadmin's document
+    // Store hashed OTP in current superadmin's document
     await Admin.updateOne(
       { _id: req.user._id },
       updateQuery
@@ -152,18 +162,33 @@ router.post('/register', protect, async (req, res) => {
     }
 
     const { email, password, name, role, otp, newAdminOtp } = req.body;
-    console.log("Register payload received: ", req.body);
 
     if (!email || !password || !name) {
       return res.status(400).json({ message: 'Email, password, and name are required' });
     }
 
-    if (!otp || req.user.otp !== otp || req.user.otpExpires < new Date()) {
-      return res.status(400).json({ message: 'Invalid or expired Super Admin OTP' });
+    // Validate OTP with hashed comparison
+    if (!otp) {
+      return res.status(400).json({ message: 'OTP is required' });
+    }
+    if (req.user.otpExpires < new Date()) {
+      return res.status(400).json({ message: 'OTP has expired' });
+    }
+    const bcrypt = require('bcryptjs');
+    const otpMatch = await bcrypt.compare(otp, req.user.otp || '');
+    if (!otpMatch) {
+      return res.status(400).json({ message: 'Invalid Super Admin OTP' });
     }
 
-    if (!newAdminOtp || req.user.newAdminOtp !== newAdminOtp || req.user.newAdminOtpExpires < new Date()) {
-      return res.status(400).json({ message: 'Invalid or expired New Admin OTP' });
+    if (!newAdminOtp) {
+      return res.status(400).json({ message: 'New Admin OTP is required' });
+    }
+    if (req.user.newAdminOtpExpires < new Date()) {
+      return res.status(400).json({ message: 'New Admin OTP has expired' });
+    }
+    const newOtpMatch = await bcrypt.compare(newAdminOtp, req.user.newAdminOtp || '');
+    if (!newOtpMatch) {
+      return res.status(400).json({ message: 'Invalid New Admin OTP' });
     }
 
     const exists = await Admin.findOne({ email: email.toLowerCase() });
@@ -171,10 +196,19 @@ router.post('/register', protect, async (req, res) => {
       return res.status(400).json({ message: 'Admin with this email already exists' });
     }
 
+    // Validate password strength
+    const validation = require('../utils/validation');
+    if (!validation.validatePassword(password)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters with uppercase, lowercase, and numbers' });
+    }
+    if (!validation.validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+
     const admin = await Admin.create({ 
-      email, 
+      email: email.toLowerCase(), 
       password, 
-      name, 
+      name: name.trim(), 
       role: role || 'admin' 
     });
     
@@ -221,13 +255,41 @@ router.delete('/admins/:id', protect, async (req, res) => {
     }
 
     const { otp, newAdminOtp } = req.body;
+    const bcrypt = require('bcryptjs');
 
-    if (!otp || req.user.otp !== otp || req.user.otpExpires < new Date()) {
-      return res.status(400).json({ message: 'Invalid or expired Super Admin OTP' });
+    // Validate Super Admin OTP
+    if (!otp) {
+      return res.status(400).json({ message: 'OTP is required' });
+    }
+    if (req.user.otpExpires < new Date()) {
+      return res.status(400).json({ message: 'OTP has expired' });
+    }
+    const otpMatch = await bcrypt.compare(otp, req.user.otp || '');
+    if (!otpMatch) {
+      return res.status(400).json({ message: 'Invalid Super Admin OTP' });
     }
 
-    if (!newAdminOtp || req.user.newAdminOtp !== newAdminOtp || req.user.newAdminOtpExpires < new Date()) {
-      return res.status(400).json({ message: 'Invalid or expired Target Admin OTP' });
+    // Validate Target Admin OTP
+    if (!newAdminOtp) {
+      return res.status(400).json({ message: 'Target Admin OTP is required' });
+    }
+    if (req.user.newAdminOtpExpires < new Date()) {
+      return res.status(400).json({ message: 'Target Admin OTP has expired' });
+    }
+    const newOtpMatch = await bcrypt.compare(newAdminOtp, req.user.newAdminOtp || '');
+    if (!newOtpMatch) {
+      return res.status(400).json({ message: 'Invalid Target Admin OTP' });
+    }
+
+    // Verify admin exists before deletion
+    const adminToDelete = await Admin.findById(req.params.id);
+    if (!adminToDelete) {
+      return res.status(404).json({ message: 'Admin not found' });
+    }
+
+    // Prevent self-deletion
+    if (adminToDelete._id.toString() === req.user._id.toString()) {
+      return res.status(403).json({ message: 'Cannot delete your own account' });
     }
 
     await Admin.findByIdAndDelete(req.params.id);
@@ -238,8 +300,9 @@ router.delete('/admins/:id', protect, async (req, res) => {
       { $unset: { otp: 1, otpExpires: 1, newAdminOtp: 1, newAdminOtpExpires: 1 } }
     );
 
-    res.json({ message: 'Admin deleted' });
+    res.json({ message: 'Admin deleted successfully' });
   } catch (error) {
+    console.error('DELETE admin error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -252,13 +315,31 @@ router.put('/admins/:id', protect, async (req, res) => {
     }
 
     const { name, email, role, password, otp, newAdminOtp } = req.body;
+    const bcrypt = require('bcryptjs');
+    const validation = require('../utils/validation');
 
-    if (!otp || req.user.otp !== otp || req.user.otpExpires < new Date()) {
-      return res.status(400).json({ message: 'Invalid or expired Super Admin OTP' });
+    // Validate Super Admin OTP
+    if (!otp) {
+      return res.status(400).json({ message: 'OTP is required' });
+    }
+    if (req.user.otpExpires < new Date()) {
+      return res.status(400).json({ message: 'OTP has expired' });
+    }
+    const otpMatch = await bcrypt.compare(otp, req.user.otp || '');
+    if (!otpMatch) {
+      return res.status(400).json({ message: 'Invalid Super Admin OTP' });
     }
 
-    if (!newAdminOtp || req.user.newAdminOtp !== newAdminOtp || req.user.newAdminOtpExpires < new Date()) {
-      return res.status(400).json({ message: 'Invalid or expired Target Admin OTP' });
+    // Validate Target Admin OTP
+    if (!newAdminOtp) {
+      return res.status(400).json({ message: 'Target Admin OTP is required' });
+    }
+    if (req.user.newAdminOtpExpires < new Date()) {
+      return res.status(400).json({ message: 'Target Admin OTP has expired' });
+    }
+    const newOtpMatch = await bcrypt.compare(newAdminOtp, req.user.newAdminOtp || '');
+    if (!newOtpMatch) {
+      return res.status(400).json({ message: 'Invalid Target Admin OTP' });
     }
 
     const admin = await Admin.findById(req.params.id);
@@ -266,8 +347,19 @@ router.put('/admins/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Admin not found' });
     }
 
-    if (name) admin.name = name;
-    if (email) admin.email = email;
+    // Validate updates
+    if (email && !validation.validateEmail(email)) {
+      return res.status(400).json({ message: 'Invalid email format' });
+    }
+    if (password && !validation.validatePassword(password)) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters with uppercase, lowercase, and numbers' });
+    }
+    if (role && !['admin', 'superadmin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    if (name) admin.name = name.trim();
+    if (email) admin.email = email.toLowerCase();
     if (role) admin.role = role;
     if (password) admin.password = password; // Hashed by pre-save hook
 
@@ -284,6 +376,7 @@ router.put('/admins/:id', protect, async (req, res) => {
     if (error.name === 'ValidationError') {
       return res.status(400).json({ message: error.message });
     }
+    console.error('PUT admin error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

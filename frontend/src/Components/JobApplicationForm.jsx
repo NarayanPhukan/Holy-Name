@@ -10,7 +10,7 @@ function JobApplicationForm() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { API_URL: ctxApiUrl, schoolProfile } = useContext(SiteDataContext);
-  const apiBase = ctxApiUrl || import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+  const apiBase = ctxApiUrl || import.meta.env.VITE_API_URL || '/api';
 
   const handleDownloadReceipt = async () => {
     const doc = new jsPDF();
@@ -206,31 +206,81 @@ function JobApplicationForm() {
 
   if (submittedRef) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6 mt-16">
-        <div className="bg-white rounded-3xl shadow-2xl p-10 max-w-lg w-full text-center border border-green-100">
-          <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FaCheckCircle size={40} />
+      <div className="min-h-screen bg-[#FAFAFA] flex flex-col items-center justify-center p-6 py-20 animate-fade-in">
+        <div className="max-w-3xl w-full">
+          {/* Success Header */}
+          <div className="text-center mb-10">
+            <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-5xl mx-auto mb-6 shadow-sm ring-8 ring-green-50">
+              <FaCheckCircle />
+            </div>
+            <h2 className="text-4xl md:text-5xl font-serif font-black text-primary mb-3">Application Received!</h2>
+            <p className="text-gray-500 text-lg max-w-lg mx-auto leading-relaxed">
+              Thank you for choosing Holy Name. Our recruitment team has received your profile and will review it shortly.
+            </p>
           </div>
-          <h2 className="text-3xl font-serif font-bold text-gray-800 mb-4">Application Submitted!</h2>
-          <p className="text-gray-600 mb-8 leading-relaxed">
-            Thank you for your interest in Holy Name. Your application has been received successfully.
-          </p>
-          <div className="bg-green-50 rounded-2xl p-6 border border-green-200 mb-8">
-            <p className="text-sm font-bold text-green-800 uppercase tracking-widest mb-2">Reference Number</p>
-            <p className="text-4xl font-mono font-bold text-green-900 tracking-tighter">{submittedRef}</p>
+
+          {/* Receipt Preview Card */}
+          <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-t-8 border-primary relative mb-12 transform transition-all hover:shadow-primary/5">
+            <div className="bg-slate-50 p-8 md:p-12 border-b border-gray-100 flex flex-col items-center text-center">
+              {schoolProfile?.logo && (
+                <img src={schoolProfile.logo} alt="Logo" className="w-20 h-20 mb-4 opacity-90" />
+              )}
+              <h3 className="text-2xl font-serif font-black text-slate-800 tracking-tight mb-1">
+                {schoolProfile?.name || "HOLY NAME HIGH SCHOOL"}
+              </h3>
+              <p className="text-xs font-bold text-amber-600 uppercase tracking-[0.3em] opacity-80 mb-8">
+                Official Acknowledgement
+              </p>
+
+              <div className="bg-slate-900 rounded-2xl md:rounded-3xl p-8 w-full max-w-md shadow-2xl shadow-slate-200">
+                <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-3">Your Reference ID</p>
+                <p className="font-mono text-4xl md:text-5xl font-black text-white tracking-tighter select-all">
+                  {submittedRef}
+                </p>
+                <div className="h-1 w-12 bg-blue-500 mx-auto mt-6 rounded-full"></div>
+              </div>
+            </div>
+
+            <div className="p-8 md:p-12 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Candidate</span>
+                  <span className="font-bold text-slate-800">{formData.fullName}</span>
+                </div>
+                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Applied For</span>
+                  <span className="font-bold text-slate-800 truncate pl-4">{jobId || "General Application"}</span>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100 flex items-start gap-4">
+                <FaExclamationCircle className="text-amber-500 mt-1 flex-shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-xs font-black text-amber-800 uppercase tracking-widest">Next Steps</p>
+                  <p className="text-sm text-amber-700 font-medium leading-relaxed">
+                    Download this receipt and keep it for your interview. Our HR team will contact you via <span className="font-bold underline">{formData.email}</span> if your profile is shortlisted.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <button 
-            onClick={handleDownloadReceipt}
-            className="mb-4 flex items-center justify-center gap-2 w-full bg-white border-2 border-primary text-primary font-bold py-4 px-8 rounded-xl hover:bg-primary/5 transition-all shadow-md"
-          >
-            <FaDownload /> Download PDF Receipt
-          </button>
-          <button 
-            onClick={() => navigate('/career')}
-            className="bg-primary text-white font-bold py-4 px-8 rounded-xl hover:bg-primary/90 transition-all shadow-lg w-full"
-          >
-            Back to Careers
-          </button>
+
+          {/* Action Hub */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
+            <button 
+              onClick={handleDownloadReceipt}
+              className="flex-1 max-w-xs group bg-slate-900 text-white font-black px-10 py-5 rounded-3xl hover:bg-black transition-all shadow-2xl flex items-center justify-center transform hover:-translate-y-2 active:scale-95"
+            >
+              <FaDownload className="mr-3 text-xl group-hover:animate-bounce" />
+              Download PDF Receipt
+            </button>
+            <button 
+              onClick={() => navigate('/career')}
+              className="flex-1 max-w-xs bg-white text-slate-900 font-black px-10 py-5 rounded-3xl hover:bg-gray-50 transition-all border-2 border-slate-900/10 flex items-center justify-center transform hover:-translate-y-1 active:scale-95"
+            >
+              Back to Careers List
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -242,10 +292,18 @@ function JobApplicationForm() {
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
           
           {/* Header */}
-          <div className="bg-primary p-8 md:p-12 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+          <div className="p-8 md:p-12 text-white relative overflow-hidden bg-primary">
+            <div className="absolute inset-0 z-0">
+              <img
+                src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=2070&auto=format&fit=crop"
+                alt="Job Application"
+                className="w-full h-full object-cover opacity-90"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-700/90 via-blue-700/70 to-blue-700/40"></div>
+            </div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 z-0"></div>
             <h1 className="text-3xl md:text-4xl font-serif font-bold mb-4 relative z-10">Application Form</h1>
-            <p className="text-white/80 relative z-10 max-w-xl">Please provide accurate information for background verification and qualification matching.</p>
+            <p className="text-white/90 relative z-10 max-w-xl font-medium">Please provide accurate information for background verification and qualification matching.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">

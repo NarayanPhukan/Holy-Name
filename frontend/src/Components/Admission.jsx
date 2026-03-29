@@ -1,12 +1,14 @@
 import React, { useState, useContext } from "react";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
-import { FaLaptop, FaBuilding, FaClipboardList, FaGraduationCap, FaPhoneAlt, FaEnvelope, FaCheckCircle, FaSearch, FaExclamationCircle, FaIdBadge, FaCalendarAlt, FaUserGraduate, FaFileAlt, FaUserCheck, FaClipboardCheck, FaPrint } from "react-icons/fa";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { FaLaptop, FaBuilding, FaClipboardList, FaGraduationCap, FaPhoneAlt, FaEnvelope, FaCheckCircle, FaSearch, FaExclamationCircle, FaIdBadge, FaCalendarAlt, FaUserGraduate, FaFileAlt, FaUserCheck, FaClipboardCheck, FaPrint, FaShieldAlt } from "react-icons/fa";
 import { SiteDataContext } from "../context/SiteDataContext";
 
 function Admission() {
   const { schoolProfile, API_URL: ctxApiUrl } = useContext(SiteDataContext);
-  const apiBase = ctxApiUrl || import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+  const apiBase = ctxApiUrl || import.meta.env.VITE_API_URL || '/api';
   const steps = [
     { title: "Registration", desc: "Start by registering your ward's details online or at the school office." },
     { title: "Entrance Exam", desc: "A brief assessment to understand the student's current academic level." },
@@ -73,14 +75,14 @@ function Admission() {
   const [previousSchool, setPreviousSchool] = useState("");
   const [selectedStream, setSelectedStream] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [nccInterest, setNccInterest] = useState(false);
   const [contactNumber, setContactNumber] = useState("");
   const [caste, setCaste] = useState("General");
 
   const handlePhoneChange = (e) => {
-    const value = e.target.value.replace(/\D/g, ""); // Remove non-digits
-    if (value.length <= 10) {
-      setContactNumber(value);
-    }
+    // Strip everything except digits and limit to 10
+    const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setContactNumber(value);
   };
 
   const handleSubjectChange = (subject) => {
@@ -103,11 +105,12 @@ function Admission() {
     formData.append('religion', form.querySelector('[name="religion"]')?.value || '');
     formData.append('caste', form.querySelector('[name="caste"]')?.value || '');
     formData.append('bloodGroup', form.querySelector('[name="bloodGroup"]')?.value || '');
-    formData.append('aadharNumber', form.querySelector('[name="aadharNumber"]')?.value || '');
+    formData.append('aadharNumber', aadharNumber);
     formData.append('penNumber', form.querySelector('[name="penNumber"]')?.value || '');
     formData.append('previousSchool', form.querySelector('[name="previousSchool"]')?.value || '');
-    formData.append('gradeApplied', form.querySelector('[name="gradeApplied"]')?.value || '');
+    formData.append('gradeApplied', gradeApplied);
     formData.append('stream', form.querySelector('[name="stream"]')?.value || '');
+    formData.append('nccInterest', nccInterest);
     
     formData.append('fatherName', form.querySelector('[name="fatherName"]')?.value || '');
     formData.append('fatherOccupation', form.querySelector('[name="fatherOccupation"]')?.value || '');
@@ -115,7 +118,7 @@ function Admission() {
     formData.append('motherOccupation', form.querySelector('[name="motherOccupation"]')?.value || '');
     formData.append('guardianName', form.querySelector('[name="guardianName"]')?.value || '');
     formData.append('relationship', form.querySelector('[name="relationship"]')?.value || '');
-    formData.append('contactNumber', form.querySelector('[name="contactNumber"]')?.value || '');
+    formData.append('contactNumber', contactNumber);
     formData.append('email', form.querySelector('[name="email"]')?.value || '');
     formData.append('address', form.querySelector('[name="address"]')?.value || '');
     formData.append('po', form.querySelector('[name="po"]')?.value || '');
@@ -159,7 +162,7 @@ function Admission() {
     if (casteFile) formData.append('casteCertificate', casteFile);
 
     try {
-      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
+      const apiBase = import.meta.env.VITE_API_URL || '/api';
       const res = await axios.post(`${apiBase}/admissions`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -186,16 +189,165 @@ function Admission() {
     }
   };
 
+  const handleDownloadReceipt = async () => {
+    if (!submittedData) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const primaryColor = [30, 41, 59]; // Slate 800 (Professional Primary)
+    const accentColor = [245, 158, 11]; // Amber 500
+
+    const loadImage = (url) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = url;
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+      });
+    };
+
+    // Header Background
+    doc.setFillColor(...primaryColor);
+    doc.rect(0, 0, 210, 45, 'F');
+
+    // Logo
+    const logoImg = schoolProfile?.logo ? await loadImage(schoolProfile.logo) : null;
+    if (logoImg) {
+      doc.addImage(logoImg, 'PNG', 15, 7, 30, 30);
+    }
+
+    // School Name & Branding
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text(schoolProfile?.name?.toUpperCase() || "HOLY NAME HS SCHOOL", 105, 18, { align: "center" });
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "italic");
+    doc.text(schoolProfile?.punchLine || "Excellence in Education", 105, 24, { align: "center" });
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("ADMISSION ACKNOWLEDGEMENT RECEIPT", 105, 36, { align: "center" });
+
+    // Success Banner
+    let yPos = 55;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("APPLICATION SUBMITTED SUCCESSFULLY", 105, yPos, { align: "center" });
+    
+    // Reference Box
+    yPos += 8;
+    doc.setFillColor(250, 250, 250);
+    doc.setDrawColor(230, 230, 230);
+    doc.roundedRect(15, yPos, pageWidth - 30, 25, 3, 3, 'FD');
+    
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text("REFERENCE NUMBER", 105, yPos + 8, { align: "center" });
+    
+    doc.setFontSize(18);
+    doc.setTextColor(...primaryColor);
+    doc.setFont("courier", "bold");
+    doc.text(submittedData.referenceNumber, 105, yPos + 18, { align: "center" });
+
+    // Details Table
+    yPos += 35;
+    
+    const tableBody = [
+      ["Student Name", submittedData.studentName],
+      ["Grade Applied", submittedData.gradeApplied.toUpperCase()],
+      ["Gender", submittedData.gender.toUpperCase()],
+      ["Category / Caste", submittedData.caste],
+      ["Date of Application", submittedData.dateOfApplication],
+      ["Contact Email", submittedData.email],
+      ["Contact Phone", submittedData.contactNumber]
+    ];
+
+    if (submittedData.penNumber) tableBody.splice(2, 0, ["PEN Number", submittedData.penNumber]);
+    if (submittedData.stream) tableBody.push(["Stream", submittedData.stream.toUpperCase()]);
+    if (submittedData.mil) tableBody.push(["MIL / Language", submittedData.mil.charAt(0).toUpperCase() + submittedData.mil.slice(1)]);
+    if (submittedData.elective) tableBody.push(["Elective Subject", submittedData.elective.replace(/_/g, ' ').toUpperCase()]);
+    if (submittedData.selectedSubjects?.length > 0) {
+      tableBody.push(["Selected Subjects", submittedData.selectedSubjects.join(", ")]);
+    }
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [["Information Detail", "Provided Value"]],
+      body: tableBody,
+      theme: 'grid',
+      headStyles: { 
+        fillColor: primaryColor, 
+        textColor: [255, 255, 255], 
+        fontSize: 10,
+        halign: 'center'
+      },
+      bodyStyles: { 
+        fontSize: 10, 
+        cellPadding: 5,
+        textColor: [50, 50, 50]
+      },
+      columnStyles: { 
+        0: { fontStyle: 'bold', fillColor: [250, 250, 250], cellWidth: 60 } 
+      },
+      margin: { left: 15, right: 15 }
+    });
+
+    yPos = doc.lastAutoTable.finalY + 15;
+    
+    // Note Section
+    doc.setFillColor(254, 252, 232); // Light yellow
+    doc.rect(15, yPos, pageWidth - 30, 20, 'F');
+    doc.setFontSize(9);
+    doc.setTextColor(120, 53, 15); // Dark amber
+    doc.setFont("helvetica", "bold");
+    doc.text("NOTICE:", 20, yPos + 8);
+    doc.setFont("helvetica", "normal");
+    doc.text("Please present this receipt during your scheduled interview. The reference number is ", 20, yPos + 13);
+    doc.text("required for all future correspondence regarding this application.", 20, yPos + 17);
+    
+    // Footer
+    yPos += 35;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(15, yPos, pageWidth - 15, yPos);
+    
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`${schoolProfile?.name || 'School Office'} | ${schoolProfile?.phone || ''} | ${schoolProfile?.email || ''}`, 105, yPos + 8, { align: "center" });
+    doc.text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 105, yPos + 13, { align: "center" });
+
+    doc.save(`Admission_Receipt_${submittedData.referenceNumber}.pdf`);
+  };
+
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20 pt-8">
       {/* Hero Section */}
-      <section className="relative w-full h-[35vh] min-h-[280px] flex items-center justify-center bg-gradient-to-r from-primary to-primary-container overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight">Admissions</h1>
-          <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto font-light">
-            Join a community dedicated to educational excellence and holistic growth.
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=2070&auto=format&fit=crop"
+            alt="Admissions"
+            className="w-full h-full object-cover opacity-95"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
+            <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
+              assignment_ind
+            </span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-white drop-shadow-sm">
+              Admissions Open
+            </span>
+          </div>
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-lg">
+            Join Our <span className="text-secondary italic drop-shadow-md">Community</span>
+          </h1>
+          <p className="text-white/95 text-lg mt-4 max-w-2xl hidden md:block font-medium drop-shadow-md">
+            Start your journey towards academic excellence and holistic growth at Holy Name HS School.
           </p>
         </div>
       </section>
@@ -322,7 +474,7 @@ function Admission() {
                   name="aadharNumber" 
                   type="text" 
                   value={aadharNumber}
-                  onChange={(e) => setAadharNumber(e.target.value)}
+                  onChange={(e) => setAadharNumber(e.target.value.replace(/\D/g, "").slice(0, 12))}
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-colors" 
                   placeholder="12-digit Aadhar number" 
                 />
@@ -397,8 +549,12 @@ function Admission() {
                   <option value="class8">Class VIII</option>
                   <option value="class9">Class IX</option>
                   <option value="class10">Class X</option>
-                  <option value="class11">Class XI</option>
-                  <option value="class12">Class XII</option>
+                  <option value="class11-science">Class XI (Science)</option>
+                  <option value="class11-commerce">Class XI (Commerce)</option>
+                  <option value="class11-arts">Class XI (Arts)</option>
+                  <option value="class12-science">Class XII (Science)</option>
+                  <option value="class12-commerce">Class XII (Commerce)</option>
+                  <option value="class12-arts">Class XII (Arts)</option>
                 </select>
               </div>
               
@@ -471,7 +627,7 @@ function Admission() {
               )}
 
               {/* Conditional Stream Selection for 11-12 */}
-              {(gradeApplied === "class11" || gradeApplied === "class12") && (
+              {gradeApplied && (gradeApplied.startsWith("class11") || gradeApplied.startsWith("class12")) && (
                 <>
                   <div className="md:col-span-2 bg-blue-50 p-4 rounded-2xl border border-blue-100 mb-2">
                     <p className="text-sm font-bold text-primary flex items-center mb-2">
@@ -531,7 +687,7 @@ function Admission() {
                         {selectedStream === 'science' && [
                           'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science', 'Geology'
                         ].map(sub => (
-                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] cursor-pointer transition-colors bg-white">
+                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors bg-white">
                             <input 
                               type="checkbox" 
                               checked={selectedSubjects.includes(sub)}
@@ -547,7 +703,7 @@ function Admission() {
                           'Political Science', 'History', 'Geography', 'Education', 'Economics', 
                           'Sociology', 'Logic & Philosophy', 'Anthropology', 'Mathematics', 'Home Science'
                         ].map(sub => (
-                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] cursor-pointer transition-colors bg-white">
+                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors bg-white">
                             <input 
                               type="checkbox" 
                               checked={selectedSubjects.includes(sub)}
@@ -566,7 +722,7 @@ function Admission() {
                           'Economic Geography', 'Computer Science and Application', 
                           'Entrepreneurship Development', 'Multimedia and Web Technology'
                         ].map(sub => (
-                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] cursor-pointer transition-colors bg-white">
+                          <label key={sub} className="flex items-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors bg-white">
                             <input 
                               type="checkbox" 
                               checked={selectedSubjects.includes(sub)}
@@ -581,6 +737,29 @@ function Admission() {
                   )}
                 </>
               )}
+
+              {/* NCC Interest Section */}
+              <div className="md:col-span-2 bg-amber-50 p-6 rounded-2xl border border-amber-100 mt-4">
+                <label className="flex items-center cursor-pointer group">
+                  <div className="relative">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only" 
+                      checked={nccInterest}
+                      onChange={() => setNccInterest(!nccInterest)}
+                    />
+                    <div className={`w-12 h-6 rounded-full transition-colors duration-300 ${nccInterest ? 'bg-amber-500' : 'bg-gray-300'}`}></div>
+                    <div className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${nccInterest ? 'translate-x-6' : ''}`}></div>
+                  </div>
+                  <div className="ml-4">
+                    <h4 className="text-lg font-bold text-primary flex items-center">
+                      <FaShieldAlt className="mr-2 text-amber-600" />
+                      Interested in joining NCC?
+                    </h4>
+                    <p className="text-sm text-gray-600">Join the 11th Assam Battalion membership program for leadership and discipline training.</p>
+                  </div>
+                </label>
+              </div>
 
               <div>
                 <label className="block text-gray-700 font-medium mb-2">Previous School Attended (If any)</label>
@@ -731,181 +910,130 @@ function Admission() {
             </div>
           </form>
           ) : (
-            <div className="max-w-3xl mx-auto py-10 animate-fade-in" id="receipt-area">
-              <style>{`
-                @media print {
-                  body * { visibility: hidden; }
-                  #receipt-area, #receipt-area * { visibility: visible; }
-                  #receipt-area { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; }
-                  .no-print { display: none !important; }
-                }
-              `}</style>
-
-              {/* Success Icon (hidden in print) */}
-              <div className="text-center no-print">
-                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
+            <div className="max-w-3xl mx-auto py-10 animate-fade-in">
+              {/* Success Icon */}
+              <div className="text-center mb-8">
+                <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-5xl mx-auto mb-6 shadow-sm">
                   <FaCheckCircle />
                 </div>
-                <h3 className="text-3xl font-serif font-bold text-primary mb-8">Application Submitted Successfully!</h3>
+                <h3 className="text-3xl md:text-4xl font-serif font-black text-primary mb-2">Success!</h3>
+                <p className="text-gray-500 text-lg">Your application has been submitted successfully.</p>
               </div>
 
-              {/* Receipt Card */}
-              <div className="bg-white p-8 md:p-10 rounded-2xl border-2 border-gray-200 text-left relative shadow-lg">
+              {/* Receipt Preview */}
+              <div className="bg-white p-8 md:p-10 rounded-3xl border-2 border-gray-100 text-left relative shadow-2xl overflow-hidden mb-10 transition-all hover:shadow-primary/5">
                 {/* Top Accent Bar */}
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 rounded-t-2xl"></div>
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500"></div>
 
                 {/* School Header */}
-                <div className="flex flex-col items-center text-center border-b-2 border-gray-200 pb-6 mb-6 pt-2">
-                  <img 
-                    src={schoolProfile?.logo || null} 
-                    alt="School Logo" 
-                    className="w-20 h-20 object-contain mb-3"
-                  />
-                  <h2 className="text-2xl md:text-3xl font-serif font-black text-primary tracking-tight">
-                    {schoolProfile?.name || "School"}
+                <div className="flex flex-col items-center text-center border-b border-gray-100 pb-8 mb-8 pt-4">
+                  {schoolProfile?.logo && (
+                    <img 
+                      src={schoolProfile.logo} 
+                      alt="School Logo" 
+                      className="w-24 h-24 object-contain mb-4 transform hover:scale-105 transition-transform" 
+                    />
+                  )}
+                  <h2 className="text-3xl md:text-4xl font-serif font-black text-primary tracking-tighter leading-none mb-2">
+                    {schoolProfile?.name || "HOLY NAME HS SCHOOL"}
                   </h2>
-                  <p className="text-sm text-amber-600 font-semibold italic tracking-wider mt-1">
+                  <p className="text-sm text-amber-600 font-bold italic tracking-widest opacity-80 uppercase">
                     {schoolProfile?.punchLine}
                   </p>
-                  <div className="h-0.5 w-16 bg-amber-400 mt-3"></div>
-                  <p className="text-xs text-gray-500 mt-2 font-medium uppercase tracking-widest">Admission Acknowledgement Receipt</p>
+                  <div className="flex items-center gap-3 mt-4">
+                    <span className="h-[1px] w-8 bg-gray-200"></span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Acknowledgement Receipt</span>
+                    <span className="h-[1px] w-8 bg-gray-200"></span>
+                  </div>
+                </div>
+
+                {/* Reference ID Highlight */}
+                <div className="bg-slate-900 rounded-2xl p-8 mb-8 text-center border border-slate-800 shadow-inner group transition-colors hover:bg-slate-950">
+                  <p className="text-blue-400 text-xs font-black uppercase tracking-[0.2em] mb-3">Application Reference Number</p>
+                  <p className="font-mono text-4xl md:text-5xl font-black text-white tracking-tighter select-all">
+                    {submittedData.referenceNumber}
+                  </p>
                 </div>
 
                 {/* Details Grid */}
-                <div className="space-y-3 text-[15px]">
-                  {/* Reference & Date Row */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="bg-primary/5 border border-primary/15 rounded-xl p-3">
-                      <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-0.5">Reference ID</p>
-                      <p className="font-mono font-black text-primary text-lg">{submittedData.referenceNumber}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-4">
+                    <div className="flex justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-amber-200 transition-colors">
+                      <span className="text-gray-500 font-bold uppercase text-[10px] tracking-wider">Student Name</span>
+                      <span className="font-black text-gray-800">{submittedData.studentName}</span>
                     </div>
-                    <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
-                      <p className="text-xs text-gray-500 uppercase font-bold tracking-wider mb-0.5">Date of Application</p>
-                      <p className="font-bold text-gray-800">{submittedData.dateOfApplication}</p>
+                    <div className="flex justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-amber-200 transition-colors">
+                      <span className="text-gray-500 font-bold uppercase text-[10px] tracking-wider">Class Applied</span>
+                      <span className="font-black text-gray-800 uppercase">{submittedData.gradeApplied}</span>
                     </div>
-                  </div>
-
-                  <div className="border-t border-dashed border-gray-200 my-4"></div>
-
-                  {/* Student Info */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">Student Name</span>
-                      <span className="font-bold text-gray-900">{submittedData.studentName}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">Class Applied</span>
-                      <span className="font-bold text-gray-900 uppercase">{submittedData.gradeApplied}</span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">Gender</span>
-                      <span className="font-bold text-gray-900 capitalize">{submittedData.gender}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">Category / Caste</span>
-                      <span className="font-bold text-gray-900">{submittedData.caste}</span>
-                    </div>
-                  </div>
-
-                  {submittedData.penNumber && (
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">PEN Number</span>
-                      <span className="font-mono font-bold text-gray-900">{submittedData.penNumber}</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">Email</span>
-                      <span className="font-bold text-gray-900 text-sm">{submittedData.email}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">Phone</span>
-                      <span className="font-bold text-gray-900">{submittedData.contactNumber}</span>
-                    </div>
-                  </div>
-
-                  {/* Stream & Subjects (for Class 11-12) */}
-                  {submittedData.stream && (
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">Stream</span>
-                      <span className="font-bold text-gray-900 uppercase">{submittedData.stream}</span>
-                    </div>
-                  )}
-
-                  {submittedData.mil && (
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">MIL / Language</span>
-                      <span className="font-bold text-gray-900 capitalize">{submittedData.mil}</span>
-                    </div>
-                  )}
-
-                  {submittedData.elective && (
-                    <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <span className="text-gray-500 font-medium text-sm">Elective Subject</span>
-                      <span className="font-bold text-gray-900 capitalize">{submittedData.elective.replace(/_/g, ' ')}</span>
-                    </div>
-                  )}
-
-                  {submittedData.selectedSubjects?.length > 0 && (
-                    <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
-                      <p className="text-gray-500 font-medium text-sm mb-2">Selected Subjects</p>
-                      <div className="flex flex-wrap gap-2">
-                        {submittedData.selectedSubjects.map((sub, i) => (
-                          <span key={i} className="px-3 py-1 bg-white border border-primary/20 rounded-full text-xs font-bold text-primary">
-                            {sub}
-                          </span>
-                        ))}
+                    {submittedData.stream && (
+                      <div className="flex justify-between p-4 bg-blue-50 rounded-xl border border-blue-100 group hover:border-blue-300 transition-colors">
+                        <span className="text-blue-600 font-bold uppercase text-[10px] tracking-wider">Stream</span>
+                        <span className="font-black text-blue-900 uppercase">{submittedData.stream}</span>
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Divider */}
-                <div className="border-t-2 border-dashed border-gray-200 mt-6 mb-5"></div>
-
-                {/* Important Note */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
-                  <p className="text-sm text-amber-900 text-center">
-                    <strong>Important:</strong> Please save this reference number (<span className="font-mono font-black">{submittedData.referenceNumber}</span>) for tracking your application status and future communication.
-                  </p>
-                </div>
-
-                {/* Help Desk Footer */}
-                <div className="bg-gray-100 rounded-xl p-4 text-center">
-                  <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mb-2">School Help Desk</p>
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
-                    <span className="flex items-center text-gray-700 font-medium">
-                      <FaPhoneAlt className="text-primary mr-2 text-xs" />
-                      {schoolProfile?.phone}
-                    </span>
-                    <span className="hidden sm:inline text-gray-300">|</span>
-                    <span className="flex items-center text-gray-700 font-medium">
-                      <FaEnvelope className="text-primary mr-2 text-xs" />
-                      {schoolProfile?.email}
-                    </span>
+                    )}
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">{schoolProfile?.officeAddress || ""}</p>
+                  <div className="space-y-4">
+                    <div className="flex justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-amber-200 transition-colors">
+                      <span className="text-gray-500 font-bold uppercase text-[10px] tracking-wider">Applied Date</span>
+                      <span className="font-black text-gray-800">{submittedData.dateOfApplication}</span>
+                    </div>
+                    <div className="flex justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-amber-200 transition-colors">
+                      <span className="text-gray-500 font-bold uppercase text-[10px] tracking-wider">Contact No</span>
+                      <span className="font-black text-gray-800">{submittedData.contactNumber}</span>
+                    </div>
+                    {submittedData.penNumber && (
+                      <div className="flex justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 group hover:border-amber-200 transition-colors">
+                        <span className="text-gray-500 font-bold uppercase text-[10px] tracking-wider">PEN Number</span>
+                        <span className="font-mono font-black text-gray-800">{submittedData.penNumber}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Subjects Tag Cloud - for Class 11-12 */}
+                {(submittedData.selectedSubjects?.length > 0 || submittedData.mil || submittedData.elective) && (
+                  <div className="mt-6 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Academic Selection</p>
+                    <div className="flex flex-wrap gap-2">
+                       {submittedData.mil && <span className="px-4 py-2 bg-white text-slate-700 font-bold rounded-full text-xs border border-slate-200 shadow-sm capitalize">Language: {submittedData.mil}</span>}
+                       {submittedData.elective && <span className="px-4 py-2 bg-white text-slate-700 font-bold rounded-full text-xs border border-slate-200 shadow-sm capitalize">Elective: {submittedData.elective.replace(/_/g, ' ')}</span>}
+                       {submittedData.selectedSubjects?.map((sub, i) => (
+                         <span key={i} className="px-4 py-2 bg-amber-500 text-white font-bold rounded-full text-xs shadow-sm shadow-amber-200">{sub}</span>
+                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Warning / Footer */}
+                <div className="mt-8 pt-8 border-t border-gray-100 text-center">
+                  <div className="flex items-center justify-center gap-2 text-amber-600 mb-2">
+                    <FaExclamationCircle className="text-sm" />
+                    <p className="text-xs font-bold uppercase tracking-wider">Next Step Instruction</p>
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed font-medium">
+                    Please download the official PDF receipt and keep the reference number safe for your upcoming interview and document verification.
+                  </p>
                 </div>
               </div>
 
-              {/* Action Buttons (hidden in print) */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center no-print mt-8">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12 mb-20 px-4">
                 <button 
-                  onClick={() => window.print()}
-                  className="bg-primary text-white font-bold px-8 py-4 rounded-full hover:bg-opacity-90 transition-all shadow-md flex items-center justify-center transform hover:-translate-y-1"
+                  onClick={handleDownloadReceipt}
+                  className="group flex-1 max-w-sm bg-primary text-white font-black px-10 py-5 rounded-3xl hover:bg-slate-800 transition-all shadow-2xl shadow-primary/20 flex items-center justify-center transform hover:-translate-y-2 active:scale-95"
                 >
-                  <FaClipboardList className="mr-2" />
-                  Print / Save as PDF
+                  <FaPrint className="mr-3 text-xl group-hover:animate-bounce" />
+                  Download PDF Receipt
                 </button>
                 <button 
-                  onClick={() => setSubmittedData(null)}
-                  className="bg-gray-100 text-gray-700 font-bold px-8 py-4 rounded-full hover:bg-gray-200 transition-all shadow-sm flex items-center justify-center"
+                  onClick={() => {
+                    setSubmittedData(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="flex-1 max-w-sm bg-white text-primary font-black px-10 py-5 rounded-3xl hover:bg-gray-50 transition-all border-2 border-primary/10 flex items-center justify-center shadow-xl transform hover:-translate-y-1 active:scale-95"
                 >
-                  Submit Another Application
+                  Submit Another Form
                 </button>
               </div>
             </div>

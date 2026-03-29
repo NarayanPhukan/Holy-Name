@@ -58,11 +58,6 @@ function AdminPage() {
     restoreSession();
   }, [API_URL]);
 
-  useEffect(() => {
-    if (activeTab === 'jobApplications') {
-      fetchJobApplications();
-    }
-  }, [activeTab]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
@@ -98,6 +93,9 @@ function AdminPage() {
 
   // --- Fetch real admission applications && Inquiries ---
   const [applications, setApplications] = useState([]);
+  const [appPage, setAppPage] = useState(1);
+  const [appTotalPages, setAppTotalPages] = useState(1);
+  const [appStats, setAppStats] = useState({ total: 0, accepted: 0, pending: 0 });
   const [inquiries, setInquiries] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [inquirySearch, setInquirySearch] = useState('');
@@ -118,18 +116,35 @@ function AdminPage() {
   const [jobApplicationsLoading, setJobApplicationsLoading] = useState(false);
   const [selectedJobApp, setSelectedJobApp] = useState(null);
 
-  const fetchApps = async () => {
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
+
+  const fetchApps = async (page = appPage, search = searchQuery) => {
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${API_URL}/admissions`, { 
+      const url = `${API_URL}/admissions?page=${page}&limit=50${search ? `&search=${encodeURIComponent(search)}` : ''}`;
+      const res = await fetch(url, { 
         headers: { Authorization: `Bearer ${token}` } 
       });
       if (res.status === 401) return handleLogout();
-      if (res.ok) setApplications(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        setApplications(data.data || data || []);
+        if (data.pagination) setAppTotalPages(data.pagination.pages);
+        if (data.stats) setAppStats(data.stats);
+      }
     } catch (e) { 
       console.warn('Could not fetch applications'); 
     }
   };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (activeTab === 'dashboard' || activeTab === 'applications') {
+        fetchApps(appPage, searchQuery);
+      }
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery, appPage]);
 
   const fetchJobApplications = async () => {
     try {
@@ -148,360 +163,378 @@ function AdminPage() {
   };
 
   const handleDownloadPDF = async (app) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const primaryColor = [37, 99, 235]; // Midblue (Blue 600) theme
+    setIsDownloadingPDF(true);
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const primaryColor = [37, 99, 235]; // Midblue (Blue 600) theme
 
-    // Helper to load image as Base64 for jsPDF
-    const loadImage = (url) => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = url;
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null);
-      });
-    };
+      // Helper to load image as Base64 for jsPDF
+      const loadImage = (url) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = url;
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+        });
+      };
 
-    // --- Header ---
-    doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, 210, 35, 'F');
-    
-    // Fetch images in parallel
-    const [logoImg, photoImg] = await Promise.all([
-      schoolProfile.logo ? loadImage(schoolProfile.logo) : Promise.resolve(null),
-      app.studentPhoto ? loadImage(app.studentPhoto) : Promise.resolve(null)
-    ]);
+      // --- Header ---
+      doc.setFillColor(...primaryColor);
+      doc.rect(0, 0, 210, 35, 'F');
+      
+      // Fetch images in parallel
+      const [logoImg, photoImg] = await Promise.all([
+        schoolProfile.logo ? loadImage(schoolProfile.logo) : Promise.resolve(null),
+        app.studentPhoto ? loadImage(app.studentPhoto) : Promise.resolve(null)
+      ]);
 
-    // Add School Logo
-    if (logoImg) {
-      doc.addImage(logoImg, 'PNG', 15, 8, 32, 32);
-    }
-
-    // Add Student Photo (Top Right)
-    if (photoImg) {
-      doc.setDrawColor(255, 255, 255);
-      doc.setLineWidth(1);
-      doc.rect(pageWidth - 45, 8, 32, 32, 'D');
-      doc.addImage(photoImg, 'JPEG', pageWidth - 45, 8, 32, 32);
-    }
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text(schoolProfile.name?.toUpperCase() || "HOLY NAME HIGH SCHOOL", 105, 14, { align: "center" });
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "italic");
-    doc.text(schoolProfile.punchLine || "", 105, 19, { align: "center" });
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.text("ADMISSION APPLICATION FORM", 105, 26, { align: "center" });
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`REFERENCE NO: ${app.referenceNumber || "N/A"}`, 105, 31, { align: "center" });
-
-    let yPos = 42;
-
-    // --- Sections ---
-    const addSection = (title, data) => {
-      autoTable(doc, {
-        startY: yPos,
-        head: [[title, '']],
-        body: data,
-        theme: 'striped',
-        headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
-        bodyStyles: { fontSize: 8.5, cellPadding: 1.5 },
-        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
-        margin: { left: 15, right: 15 },
-      });
-      yPos = doc.lastAutoTable.finalY + 6;
-    };
-
-    // 1. Personal Info
-    addSection("Personal Information", [
-      ["Student Name", app.studentName],
-      ["Date of Birth", app.dateOfBirth],
-      ["Place of Birth", app.placeOfBirth || "N/A"],
-      ["Gender", app.gender],
-      ["Blood Group", app.bloodGroup || "N/A"],
-      ["Religion", app.religion || "N/A"],
-      ["Caste", app.caste || "N/A"],
-      ["Grade Applied", app.gradeApplied]
-    ]);
-
-    // Check if we need a new page
-    if (yPos > 265) { doc.addPage(); yPos = 20; }
-
-    // 2. Parent Info
-    addSection("Parent / Guardian Details", [
-      ["Father's Name", app.fatherName || "N/A"],
-      ["Father's Occupation", app.fatherOccupation || "N/A"],
-      ["Mother's Name", app.motherName || "N/A"],
-      ["Mother's Occupation", app.motherOccupation || "N/A"],
-      ["Guardian Name", app.guardianName || "N/A"],
-      ["Relationship", app.relationship || "N/A"]
-    ]);
-
-    if (yPos > 265) { doc.addPage(); yPos = 20; }
-
-    // 3. Contact & Address
-    addSection("Contact & Address Details", [
-      ["Phone Number", app.contactNumber],
-      ["Email Address", app.email],
-      ["Current Address", app.address],
-      ["Post Office", app.po || "N/A"],
-      ["Police Station", app.ps || "N/A"],
-      ["Pincode", app.pincode || "N/A"]
-    ]);
-
-    if (yPos > 265) { doc.addPage(); yPos = 20; }
-
-    // 4. Academic Background
-    addSection("Academic Background", [
-      ["Previous School", app.previousSchool || "N/A"],
-      ["Stream", app.stream || "N/A"],
-      ["Elective", app.elective || "N/A"],
-      ["MIL", app.mil || "N/A"],
-      ["Selected Subjects", app.selectedSubjects?.join(", ") || "None"]
-    ]);
-
-    if (yPos > 265) { doc.addPage(); yPos = 20; }
-
-    // 5. Identity
-    addSection("Identity Details", [
-      ["Aadhar Number", app.aadharNumber || "N/A"],
-      ["PEN Number", app.penNumber || "N/A"]
-    ]);
-
-    // --- Document Attachments (New Pages) ---
-    const attachments = [
-      { label: "Birth Certificate", url: app.birthCertificate },
-      { label: "Transfer Certificate", url: app.transferCertificate },
-      { label: "Marksheet", url: app.marksheet },
-      { label: "Student Photo (Original)", url: app.studentPhoto },
-      { label: "Aadhar VID/Receipt", url: app.aadharVidOrReceipt }
-    ];
-
-    for (const docItem of attachments) {
-      if (!docItem.url) continue;
-
-      // Skip PDFs for embedding (only handle images)
-      if (docItem.url.toLowerCase().endsWith('.pdf')) {
-        doc.setFontSize(11);
-        doc.setTextColor(...primaryColor);
-        doc.setFont("helvetica", "bold");
-        doc.text(`ATTACHMENT: ${docItem.label.toUpperCase()} (LINK ONLY)`, 15, yPos);
-        yPos += 7;
-        doc.setFontSize(9);
-        doc.setTextColor(0, 50, 150);
-        doc.text(`• Click here to view: ${docItem.label}`, 20, yPos);
-        doc.link(20, yPos - 3, 60, 5, { url: docItem.url });
-        yPos += 10;
-        continue;
+      // Add School Logo
+      if (logoImg) {
+        doc.addImage(logoImg, 'PNG', 15, 8, 32, 32);
       }
 
-      // Load and embed image
-      const img = await loadImage(docItem.url);
-      if (img) {
-        doc.addPage();
-        const margin = 15;
-        const maxWidth = doc.internal.pageSize.getWidth() - (margin * 2);
-        const maxHeight = doc.internal.pageSize.getHeight() - (margin * 3); // 3x margin for header
-        
-        let imgWidth = img.width;
-        let imgHeight = img.height;
-        const ratio = imgWidth / imgHeight;
-
-        // Scale to fit page
-        if (imgWidth > maxWidth) {
-          imgWidth = maxWidth;
-          imgHeight = imgWidth / ratio;
-        }
-        if (imgHeight > maxHeight) {
-          imgHeight = maxHeight;
-          imgWidth = imgHeight * ratio;
-        }
-
-        // Add Header on attachment page
-        doc.setFillColor(...primaryColor);
-        doc.rect(0, 0, 210, 20, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text(`DOCUMENT: ${docItem.label.toUpperCase()}`, 105, 13, { align: "center" });
-
-        // Add the image centered
-        const xPos = (doc.internal.pageSize.getWidth() - imgWidth) / 2;
-        doc.addImage(img, 'JPEG', xPos, 25, imgWidth, imgHeight);
-
-        // Reset text color for status/timestamp
-        doc.setTextColor(150);
+      // Add Student Photo (Top Right)
+      if (photoImg) {
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(1);
+        doc.rect(pageWidth - 45, 8, 32, 32, 'D');
+        doc.addImage(photoImg, 'JPEG', pageWidth - 45, 8, 32, 32);
       }
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont("helvetica", "bold");
+      doc.text(schoolProfile.name?.toUpperCase() || "HOLY NAME HIGH SCHOOL", 105, 14, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "italic");
+      doc.text(schoolProfile.punchLine || "", 105, 19, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("ADMISSION APPLICATION FORM", 105, 26, { align: "center" });
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`REFERENCE NO: ${app.referenceNumber || "N/A"}`, 105, 31, { align: "center" });
+
+      let yPos = 42;
+
+      // --- Sections ---
+      const addSection = (title, data) => {
+        autoTable(doc, {
+          startY: yPos,
+          head: [[title, '']],
+          body: data,
+          theme: 'striped',
+          headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+          bodyStyles: { fontSize: 8.5, cellPadding: 1.5 },
+          columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
+          margin: { left: 15, right: 15 },
+        });
+        yPos = doc.lastAutoTable.finalY + 6;
+      };
+
+      // 1. Personal Info
+      addSection("Personal Information", [
+        ["Student Name", app.studentName],
+        ["Date of Birth", app.dateOfBirth],
+        ["Place of Birth", app.placeOfBirth || "N/A"],
+        ["Gender", app.gender],
+        ["Blood Group", app.bloodGroup || "N/A"],
+        ["Religion", app.religion || "N/A"],
+        ["Caste", app.caste || "N/A"],
+        ["Grade Applied", app.gradeApplied],
+        ["NCC Interest", app.nccInterest ? "YES (11th Assam Battalion)" : "NO"]
+      ]);
+
+      // Check if we need a new page
+      if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+      // 2. Parent Info
+      addSection("Parent / Guardian Details", [
+        ["Father's Name", app.fatherName || "N/A"],
+        ["Father's Occupation", app.fatherOccupation || "N/A"],
+        ["Mother's Name", app.motherName || "N/A"],
+        ["Mother's Occupation", app.motherOccupation || "N/A"],
+        ["Guardian Name", app.guardianName || "N/A"],
+        ["Relationship", app.relationship || "N/A"]
+      ]);
+
+      if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+      // 3. Contact & Address
+      addSection("Contact & Address Details", [
+        ["Phone Number", app.contactNumber],
+        ["Email Address", app.email],
+        ["Current Address", app.address],
+        ["Post Office", app.po || "N/A"],
+        ["Police Station", app.ps || "N/A"],
+        ["Pincode", app.pincode || "N/A"]
+      ]);
+
+      if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+      // 4. Academic Background
+      addSection("Academic Background", [
+        ["Previous School", app.previousSchool || "N/A"],
+        ["Stream", app.stream || "N/A"],
+        ["Elective", app.elective || "N/A"],
+        ["MIL", app.mil || "N/A"],
+        ["Selected Subjects", app.selectedSubjects?.join(", ") || "None"]
+      ]);
+
+      if (yPos > 265) { doc.addPage(); yPos = 20; }
+
+      // 5. Identity
+      addSection("Identity Details", [
+        ["Aadhar Number", app.aadharNumber || "N/A"],
+        ["PEN Number", app.penNumber || "N/A"]
+      ]);
+
+      // --- Document Attachments (New Pages) ---
+      const attachments = [
+        { label: "Birth Certificate", url: app.birthCertificate },
+        { label: "Transfer Certificate", url: app.transferCertificate },
+        { label: "Marksheet", url: app.marksheet },
+        { label: "Student Photo (Original)", url: app.studentPhoto },
+        { label: "Aadhar VID/Receipt", url: app.aadharVidOrReceipt },
+        { label: "Caste Certificate", url: app.casteCertificate }
+      ];
+
+      for (const docItem of attachments) {
+        if (!docItem.url) continue;
+
+        // Skip PDFs for embedding (only handle images)
+        if (docItem.url.toLowerCase().endsWith('.pdf')) {
+          doc.setFontSize(11);
+          doc.setTextColor(...primaryColor);
+          doc.setFont("helvetica", "bold");
+          doc.text(`ATTACHMENT: ${docItem.label.toUpperCase()} (LINK ONLY)`, 15, yPos);
+          yPos += 7;
+          doc.setFontSize(9);
+          doc.setTextColor(0, 50, 150);
+          doc.text(`• Click here to view: ${docItem.label}`, 20, yPos);
+          doc.link(20, yPos - 3, 60, 5, { url: docItem.url });
+          yPos += 10;
+          continue;
+        }
+
+        // Load and embed image
+        const img = await loadImage(docItem.url);
+        if (img) {
+          doc.addPage();
+          const margin = 15;
+          const maxWidth = doc.internal.pageSize.getWidth() - (margin * 2);
+          const maxHeight = doc.internal.pageSize.getHeight() - (margin * 3); // 3x margin for header
+          
+          let imgWidth = img.width;
+          let imgHeight = img.height;
+          const ratio = imgWidth / imgHeight;
+
+          // Scale to fit page
+          if (imgWidth > maxWidth) {
+            imgWidth = maxWidth;
+            imgHeight = imgWidth / ratio;
+          }
+          if (imgHeight > maxHeight) {
+            imgHeight = maxHeight;
+            imgWidth = imgHeight * ratio;
+          }
+
+          // Add Header on attachment page
+          doc.setFillColor(...primaryColor);
+          doc.rect(0, 0, 210, 20, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text(`DOCUMENT: ${docItem.label.toUpperCase()}`, 105, 13, { align: "center" });
+
+          // Add the image centered
+          const xPos = (doc.internal.pageSize.getWidth() - imgWidth) / 2;
+          doc.addImage(img, 'JPEG', xPos, 25, imgWidth, imgHeight);
+
+          // Reset text color for status/timestamp
+          doc.setTextColor(150);
+        }
+      }
+
+      // Final Status & Timestamp (centered at bottom of last page)
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(`Document generated on: ${new Date().toLocaleString()} | Application Status: ${app.status.toUpperCase()}`, 105, 285, { align: "center" });
+
+      doc.save(`Application_${app.studentName.replace(/\s+/g, '_')}_${app.referenceNumber}.pdf`);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      alert("Failed to generate PDF. Check console for details.");
+    } finally {
+      setIsDownloadingPDF(false);
     }
-
-    // Final Status & Timestamp (centered at bottom of last page)
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(`Document generated on: ${new Date().toLocaleString()} | Application Status: ${app.status.toUpperCase()}`, 105, 285, { align: "center" });
-
-    doc.save(`Application_${app.studentName.replace(/\s+/g, '_')}_${app.referenceNumber}.pdf`);
   };
 
   const handleDownloadJobPDF = async (app) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const primaryColor = [37, 99, 235]; // Blue 600
+    setIsDownloadingPDF(true);
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const primaryColor = [37, 99, 235]; // Blue 600
 
-    const loadImage = (url) => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = url;
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null);
-      });
-    };
+      const loadImage = (url) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = url;
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null);
+        });
+      };
 
-    // --- Header ---
-    doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, 210, 35, 'F');
-    
-    const [logoImg, photoImg] = await Promise.all([
-      schoolProfile.logo ? loadImage(schoolProfile.logo) : Promise.resolve(null),
-      app.photo ? loadImage(app.photo) : Promise.resolve(null)
-    ]);
+      // --- Header ---
+      doc.setFillColor(...primaryColor);
+      doc.rect(0, 0, 210, 35, 'F');
+      
+      const [logoImg, photoImg] = await Promise.all([
+        schoolProfile.logo ? loadImage(schoolProfile.logo) : Promise.resolve(null),
+        app.photo ? loadImage(app.photo) : Promise.resolve(null)
+      ]);
 
-    if (logoImg) doc.addImage(logoImg, 'PNG', 15, 8, 32, 32);
-    if (photoImg) {
-      doc.setDrawColor(255, 255, 255);
-      doc.setLineWidth(1);
-      doc.rect(pageWidth - 45, 8, 32, 32, 'D');
-      doc.addImage(photoImg, 'JPEG', pageWidth - 45, 8, 32, 32);
-    }
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
-    doc.setFont("helvetica", "bold");
-    doc.text(schoolProfile.name?.toUpperCase() || "HOLY NAME HIGH SCHOOL", 105, 14, { align: "center" });
-    
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("JOB APPLICATION DOSSIER", 105, 24, { align: "center" });
-    
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text(`CANDIDATE: ${app.fullName.toUpperCase()} | REF: ${app.referenceNumber}`, 105, 30, { align: "center" });
-
-    let yPos = 45;
-
-    const addSection = (title, data) => {
-      autoTable(doc, {
-        startY: yPos,
-        head: [[title, '']],
-        body: data,
-        theme: 'striped',
-        headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
-        bodyStyles: { fontSize: 8.5, cellPadding: 1.5 },
-        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
-        margin: { left: 15, right: 15 },
-      });
-      yPos = doc.lastAutoTable.finalY + 8;
-    };
-
-    addSection("Personal Information", [
-      ["Full Name", app.fullName],
-      ["Email Address", app.email],
-      ["Phone Number", app.phone],
-      ["Date of Birth / Age", `${app.dob} (${app.age} Years)`],
-      ["Gender", app.gender],
-      ["Caste / Religion", `${app.caste} / ${app.religion}`]
-    ]);
-
-    if (yPos > 250) { doc.addPage(); yPos = 20; }
-
-    addSection("Qualifications & Occupational Status", [
-      ["Highest Qualification", app.qualification],
-      ["Experience Status", app.isExperienced ? "Experienced Professional" : "Fresher / Entry Level"],
-      ["Total Experience", app.totalExperience || "N/A"],
-      ["Last/Current School", app.schoolName || "N/A"],
-      ["UDISE Code", app.udiseCode || "N/A"]
-    ]);
-
-    if (yPos > 250) { doc.addPage(); yPos = 20; }
-
-    addSection("Identity & Contact Details", [
-      ["Aadhar Number", app.aadhar || "N/A"],
-      ["PAN Number", app.pan || "N/A"],
-      ["Full Address", `${app.address}, ${app.postOffice}, ${app.policeStation}, ${app.pincode}`]
-    ]);
-
-    const attachments = [
-      { label: "Candidate Photo", url: app.photo },
-      { label: "Digital Signature", url: app.signature },
-      { label: "Resume / CV", url: app.resume },
-      { label: "Class 10 Marksheet", url: app.marksheet10 },
-      { label: "Class 10 Certificate", url: app.cert10 },
-      { label: "Class 12 Marksheet", url: app.marksheet12 },
-      { label: "Class 12 Certificate", url: app.cert12 },
-      { label: "UG Marksheet", url: app.marksheetUG },
-      { label: "UG Certificate", url: app.certUG },
-      { label: "PG Marksheet", url: app.marksheetPG },
-      { label: "PG Certificate", url: app.certPG },
-      { label: "B.Ed Marksheet", url: app.marksheetBEd },
-      { label: "B.Ed Certificate", url: app.certBEd },
-      { label: "D.Led Marksheet", url: app.marksheetDLed },
-      { label: "D.Led Certificate", url: app.certDLed },
-      { label: "Experience Certificate", url: app.expCertificate },
-      { label: "Caste Certificate", url: app.casteCertificate }
-    ];
-
-    for (const docItem of attachments) {
-      if (!docItem.url) continue;
-
-      if (docItem.url.toLowerCase().endsWith('.pdf')) {
-        if (yPos > 270) { doc.addPage(); yPos = 20; }
-        doc.setFontSize(10);
-        doc.setTextColor(...primaryColor);
-        doc.setFont("helvetica", "bold");
-        doc.text(`ATTACHMENT: ${docItem.label.toUpperCase()} (LINK)`, 15, yPos);
-        yPos += 7;
-        doc.setFontSize(8);
-        doc.setTextColor(0, 50, 150);
-        doc.text(`• Click to view: ${docItem.url}`, 20, yPos);
-        doc.link(20, yPos - 3, 150, 5, { url: docItem.url });
-        yPos += 12;
-        continue;
+      if (logoImg) doc.addImage(logoImg, 'PNG', 15, 8, 32, 32);
+      if (photoImg) {
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(1);
+        doc.rect(pageWidth - 45, 8, 32, 32, 'D');
+        doc.addImage(photoImg, 'JPEG', pageWidth - 45, 8, 32, 32);
       }
 
-      const img = await loadImage(docItem.url);
-      if (img) {
-        doc.addPage();
-        doc.setFillColor(...primaryColor);
-        doc.rect(0, 0, 210, 20, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.text(`DOCUMENT: ${docItem.label.toUpperCase()}`, 105, 13, { align: "center" });
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(20);
+      doc.setFont("helvetica", "bold");
+      doc.text(schoolProfile.name?.toUpperCase() || "HOLY NAME HIGH SCHOOL", 105, 14, { align: "center" });
+      
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("JOB APPLICATION DOSSIER", 105, 24, { align: "center" });
+      
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`CANDIDATE: ${app.fullName.toUpperCase()} | REF: ${app.referenceNumber}`, 105, 30, { align: "center" });
 
-        const margin = 15;
-        const maxWidth = 180;
-        const maxHeight = 240;
-        let w = img.width;
-        let h = img.height;
-        const r = w / h;
-        if (w > maxWidth) { w = maxWidth; h = w / r; }
-        if (h > maxHeight) { h = maxHeight; w = h * r; }
-        doc.addImage(img, 'JPEG', (210 - w) / 2, 30, w, h);
+      let yPos = 45;
+
+      const addSection = (title, data) => {
+        autoTable(doc, {
+          startY: yPos,
+          head: [[title, '']],
+          body: data,
+          theme: 'striped',
+          headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+          bodyStyles: { fontSize: 8.5, cellPadding: 1.5 },
+          columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
+          margin: { left: 15, right: 15 },
+        });
+        yPos = doc.lastAutoTable.finalY + 8;
+      };
+
+      addSection("Personal Information", [
+        ["Full Name", app.fullName],
+        ["Email Address", app.email],
+        ["Phone Number", app.phone],
+        ["Date of Birth / Age", `${app.dob} (${app.age} Years)`],
+        ["Gender", app.gender],
+        ["Caste / Religion", `${app.caste} / ${app.religion}`]
+      ]);
+
+      if (yPos > 250) { doc.addPage(); yPos = 20; }
+
+      addSection("Qualifications & Occupational Status", [
+        ["Highest Qualification", app.qualification],
+        ["Experience Status", app.isExperienced ? "Experienced Professional" : "Fresher / Entry Level"],
+        ["Total Experience", app.totalExperience || "N/A"],
+        ["Last/Current School", app.schoolName || "N/A"],
+        ["UDISE Code", app.udiseCode || "N/A"]
+      ]);
+
+      if (yPos > 250) { doc.addPage(); yPos = 20; }
+
+      addSection("Identity & Contact Details", [
+        ["Aadhar Number", app.aadhar || "N/A"],
+        ["PAN Number", app.pan || "N/A"],
+        ["Full Address", `${app.address}, ${app.postOffice}, ${app.policeStation}, ${app.pincode}`]
+      ]);
+
+      const attachments = [
+        { label: "Candidate Photo", url: app.photo },
+        { label: "Digital Signature", url: app.signature },
+        { label: "Resume / CV", url: app.resume },
+        { label: "Class 10 Marksheet", url: app.marksheet10 },
+        { label: "Class 10 Certificate", url: app.cert10 },
+        { label: "Class 12 Marksheet", url: app.marksheet12 },
+        { label: "Class 12 Certificate", url: app.cert12 },
+        { label: "UG Marksheet", url: app.marksheetUG },
+        { label: "UG Certificate", url: app.certUG },
+        { label: "PG Marksheet", url: app.marksheetPG },
+        { label: "PG Certificate", url: app.certPG },
+        { label: "B.Ed Marksheet", url: app.marksheetBEd },
+        { label: "B.Ed Certificate", url: app.certBEd },
+        { label: "D.Led Marksheet", url: app.marksheetDLed },
+        { label: "D.Led Certificate", url: app.certDLed },
+        { label: "Experience Certificate", url: app.expCertificate },
+        { label: "Caste Certificate", url: app.casteCertificate }
+      ];
+
+      for (const docItem of attachments) {
+        if (!docItem.url) continue;
+
+        if (docItem.url.toLowerCase().endsWith('.pdf')) {
+          if (yPos > 270) { doc.addPage(); yPos = 20; }
+          doc.setFontSize(10);
+          doc.setTextColor(...primaryColor);
+          doc.setFont("helvetica", "bold");
+          doc.text(`ATTACHMENT: ${docItem.label.toUpperCase()} (LINK)`, 15, yPos);
+          yPos += 7;
+          doc.setFontSize(8);
+          doc.setTextColor(0, 50, 150);
+          doc.text(`• Click to view: ${docItem.url}`, 20, yPos);
+          doc.link(20, yPos - 3, 150, 5, { url: docItem.url });
+          yPos += 12;
+          continue;
+        }
+
+        const img = await loadImage(docItem.url);
+        if (img) {
+          doc.addPage();
+          doc.setFillColor(...primaryColor);
+          doc.rect(0, 0, 210, 20, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(12);
+          doc.setFont("helvetica", "bold");
+          doc.text(`DOCUMENT: ${docItem.label.toUpperCase()}`, 105, 13, { align: "center" });
+
+          const margin = 15;
+          const maxWidth = 180;
+          const maxHeight = 240;
+          let w = img.width;
+          let h = img.height;
+          const r = w / h;
+          if (w > maxWidth) { w = maxWidth; h = w / r; }
+          if (h > maxHeight) { h = maxHeight; w = h * r; }
+          doc.addImage(img, 'JPEG', (210 - w) / 2, 30, w, h);
+        }
       }
-    }
 
-    doc.setFontSize(8);
-    doc.setTextColor(150);
-    doc.text(`Generated on: ${new Date().toLocaleString()} | Candidate: ${app.fullName}`, 105, 288, { align: "center" });
-    doc.save(`JobApp_${app.fullName.replace(/\s+/g, '_')}_${app.referenceNumber}.pdf`);
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(`Generated on: ${new Date().toLocaleString()} | Candidate: ${app.fullName}`, 105, 288, { align: "center" });
+      doc.save(`JobApp_${app.fullName.replace(/\s+/g, '_')}_${app.referenceNumber}.pdf`);
+    } catch (err) {
+      console.error("Job PDF generation error:", err);
+      alert("Failed to generate PDF dossier.");
+    } finally {
+      setIsDownloadingPDF(false);
+    }
   };
 
   const fetchAdmins = async () => {
@@ -622,21 +655,40 @@ function AdminPage() {
   };
 
   useEffect(() => {
-    if (activeTab === 'applications') fetchApps();
-    if (activeTab === 'inquiries') fetchInquiries();
-    if (activeTab === 'students') fetchStudents();
-    if (activeTab === 'admins') fetchAdmins();
-    if (activeTab === 'careerAds') fetchJobs();
+    // Initial fetch and fetch on tab change
+    if (activeTab === 'dashboard') {
+      fetchApps();
+      fetchStudents();
+      fetchInquiries();
+      fetchJobApplications();
+    } else if (activeTab === 'applications') {
+      fetchApps();
+    } else if (activeTab === 'inquiries') {
+      fetchInquiries();
+    } else if (activeTab === 'students') {
+      fetchStudents();
+    } else if (activeTab === 'admins') {
+      fetchAdmins();
+    } else if (activeTab === 'careerAds') {
+      fetchJobs();
+    } else if (activeTab === 'jobApplications') {
+      fetchJobApplications();
+    }
+
     if (adminUser?.role === 'superadmin') fetchAdmins();
-    // Live changes: poll every 30 seconds
+
+    // Live changes: poll for new data every 60 seconds (reduced frequency to save resources)
     const interval = setInterval(() => {
-        fetchApps();
-        fetchStudents();
-        fetchInquiries();
-        if (adminUser?.role === 'superadmin') fetchAdmins();
-    }, 30000);
+      // Only poll summary data if on dashboard or relevant list
+      if (activeTab === 'dashboard' || activeTab === 'applications') fetchApps();
+      if (activeTab === 'dashboard' || activeTab === 'students') fetchStudents();
+      if (activeTab === 'dashboard' || activeTab === 'inquiries') fetchInquiries();
+      if (activeTab === 'dashboard' || activeTab === 'jobApplications') fetchJobApplications();
+      if (adminUser?.role === 'superadmin') fetchAdmins();
+    }, 60000);
+
     return () => clearInterval(interval);
-  }, [API_URL, adminUser?.role]);
+  }, [API_URL, adminUser?.role, activeTab]);
 
   const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '', role: 'admin' });
   const [isAdminFormLoading, setIsAdminFormLoading] = useState(false);
@@ -761,19 +813,11 @@ function AdminPage() {
     }
   };
 
-  const filteredApps = applications.filter(app => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    const ref = app.referenceNumber || app._id.slice(-6).toUpperCase();
-    return (
-      (app.studentName && app.studentName.toLowerCase().includes(q)) ||
-      (ref.toLowerCase().includes(q))
-    );
-  });
+  const filteredApps = applications;
 
-  const totalApps = filteredApps.length;
-  const approvedApps = filteredApps.filter(a => a.status === 'accepted').length;
-  const pendingApps = filteredApps.filter(a => a.status === 'pending').length;
+  const totalApps = appStats.total;
+  const approvedApps = appStats.accepted;
+  const pendingApps = appStats.pending;
 
   const dashboardStats = [
     { label: 'Total Applications', value: totalApps.toString(), icon: <FaClipboardList className="text-primary" />, bg: 'bg-primary/10' },
@@ -1413,7 +1457,7 @@ function AdminPage() {
   );
 
   // --- Faculty Tab ---
-  const [newFaculty, setNewFaculty] = useState({ name: '', title: '', EduQua: '', Subject: '', photo: '', department: 'Science' });
+  const [newFaculty, setNewFaculty] = useState({ name: '', title: '', EduQua: '', Subject: '', photo: '', facebook: '', instagram: '', classes: '', department: 'Science' });
   const [facultyFile, setFacultyFile] = useState(null);
   const [isFacultyUploading, setIsFacultyUploading] = useState(false);
 
@@ -1430,7 +1474,7 @@ function AdminPage() {
         ...faculty,
         [dept]: [{ ...newFaculty, photo: photoUrl, _id: `temp-${Date.now()}` }, ...faculty[dept]]
       });
-      setNewFaculty({ name: '', title: '', EduQua: '', Subject: '', photo: '', department: dept });
+      setNewFaculty({ name: '', title: '', EduQua: '', Subject: '', photo: '', facebook: '', instagram: '', classes: '', department: dept });
       setFacultyFile(null);
     } catch (err) {
       alert("Faculty upload failed: " + err.message);
@@ -1450,12 +1494,15 @@ function AdminPage() {
         <input type="text" placeholder="Name" value={newFaculty.name} onChange={e => setNewFaculty({...newFaculty, name: e.target.value})} className="p-2 border rounded-lg" />
         <input type="text" placeholder="Subject" value={newFaculty.Subject} onChange={e => setNewFaculty({...newFaculty, Subject: e.target.value})} className="p-2 border rounded-lg" />
         <select value={newFaculty.department} onChange={e => setNewFaculty({...newFaculty, department: e.target.value})} className="p-2 border rounded-lg">
-          <option value="Science">Science</option><option value="Arts">Arts</option><option value="Guest">Guest</option>
+          <option value="Science">Science</option><option value="Arts">Arts</option><option value="Commerce">Commerce</option>
         </select>
         <input type="text" placeholder="Qualifications (e.g. MSc, PhD)" value={newFaculty.EduQua} onChange={e => setNewFaculty({...newFaculty, EduQua: e.target.value})} className="p-2 border rounded-lg" />
-        <input type="text" placeholder="Experience (e.g. 5+ yrs exp)" value={newFaculty.title} onChange={e => setNewFaculty({...newFaculty, title: e.target.value})} className="p-2 border rounded-lg" />
+        <input type="text" placeholder="Total Experience (e.g. 5+ yrs exp)" value={newFaculty.title} onChange={e => setNewFaculty({...newFaculty, title: e.target.value})} className="p-2 border rounded-lg" />
+        <input type="url" placeholder="Facebook Profile Link" value={newFaculty.facebook || ''} onChange={e => setNewFaculty({...newFaculty, facebook: e.target.value})} className="p-2 border rounded-lg" />
+        <input type="url" placeholder="Instagram Profile Link" value={newFaculty.instagram || ''} onChange={e => setNewFaculty({...newFaculty, instagram: e.target.value})} className="p-2 border rounded-lg" />
+        <textarea placeholder="Classes Taught (e.g. IX, X, XI)" value={newFaculty.classes || ''} onChange={e => setNewFaculty({...newFaculty, classes: e.target.value})} className="p-2 border rounded-lg md:col-span-2" rows={2} />
         <div className="p-2 border rounded-lg bg-white flex flex-col">
-          <label className="text-gray-400 text-sm mb-1">Photo:</label>
+          <label className="text-gray-400 text-sm mb-1">Teacher Photo:</label>
           <input 
             type="file" 
             accept="image/*"
@@ -1472,7 +1519,7 @@ function AdminPage() {
         </button>
       </div>
 
-      {Object.keys(faculty).map(dept => (
+      {Object.keys(faculty).filter(dept => dept !== 'Guest').map(dept => (
         <div key={dept} className="mb-8 border-t pt-4">
           <h4 className="font-bold text-lg mb-3 text-primary">{dept} Department</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -3293,6 +3340,27 @@ function AdminPage() {
                   </table>
                 </div>
               )}
+              {appTotalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                  <button 
+                    onClick={() => setAppPage(p => Math.max(1, p - 1))}
+                    disabled={appPage === 1}
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+                  <span className="text-sm font-medium text-gray-500">
+                    Page <span className="text-gray-900">{appPage}</span> of <span className="text-gray-900">{appTotalPages}</span>
+                  </span>
+                  <button 
+                    onClick={() => setAppPage(p => Math.min(appTotalPages, p + 1))}
+                    disabled={appPage === appTotalPages}
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -3512,11 +3580,24 @@ function AdminPage() {
                 <div className="flex items-center gap-3">
                   <button 
                     onClick={() => handleDownloadJobPDF(selectedJobApp)}
-                    className="flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl font-bold transition-all text-sm"
+                    disabled={isDownloadingPDF}
+                    className="flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl font-bold transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Download Application PDF"
                   >
-                    <FaDownload />
-                    <span className="hidden sm:inline">Download PDF</span>
+                    {isDownloadingPDF ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Generating...</span>
+                      </span>
+                    ) : (
+                      <>
+                        <FaDownload />
+                        <span className="hidden sm:inline">Download PDF</span>
+                      </>
+                    )}
                   </button>
                   <button onClick={() => setSelectedJobApp(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
                     <FaPlus className="rotate-45 text-2xl" />
@@ -3667,11 +3748,24 @@ function AdminPage() {
                 <div className="flex items-center gap-3">
                   <button 
                     onClick={() => handleDownloadPDF(selectedApp)}
-                    className="flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl font-bold transition-all text-sm"
+                    disabled={isDownloadingPDF}
+                    className="flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl font-bold transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Download Application PDF"
                   >
-                    <FaDownload />
-                    <span className="hidden sm:inline">Download PDF</span>
+                    {isDownloadingPDF ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Generating...</span>
+                      </span>
+                    ) : (
+                      <>
+                        <FaDownload />
+                        <span className="hidden sm:inline">Download PDF</span>
+                      </>
+                    )}
                   </button>
                   <button onClick={() => setSelectedApp(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
                     <FaPlus className="rotate-45 text-2xl" />
@@ -3692,6 +3786,7 @@ function AdminPage() {
                     <h4 className="text-xs uppercase font-bold text-gray-400 mb-3 tracking-widest">Personal Information</h4>
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Name:</span> <span className="text-gray-900 font-medium block text-lg">{selectedApp.studentName}</span></p>
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Grade Applied:</span> <span className="font-medium uppercase text-sm bg-primary/10 text-primary px-2 py-1 rounded inline-block mt-1">{selectedApp.gradeApplied}</span></p>
+                    {selectedApp.nccInterest && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">NCC Interest:</span> <span className="font-medium text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded inline-block mt-1">YES (11th Assam Bn)</span></p>}
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">DOB:</span> <span className="text-gray-900 block">{selectedApp.dateOfBirth}</span></p>
                     {selectedApp.placeOfBirth && <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Place of Birth:</span> <span className="text-gray-900 block">{selectedApp.placeOfBirth}</span></p>}
                     <p className="mb-2"><span className="font-semibold text-gray-600 text-sm">Gender:</span> <span className="text-gray-900 block">{selectedApp.gender}</span></p>

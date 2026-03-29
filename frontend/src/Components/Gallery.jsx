@@ -96,20 +96,33 @@ function Gallery() {
   }, [eventId]);
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20 pt-8">
       {/* Hero Section */}
-      <section className="relative w-full h-[35vh] min-h-[280px] flex items-center justify-center bg-gradient-to-r from-primary to-primary-container overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-overlay transform scale-105 hover:scale-100 transition-transform duration-1000"></div>
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-6 tracking-tight flex items-center justify-center">
-            <FaImages className="text-amber-400 mr-4 drop-shadow-lg" />
-            {currentEvent ? currentEvent.title : "Photo Gallery"}
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1511629091441-ee46146481b6?q=80&w=2070&auto=format&fit=crop"
+            alt="Gallery"
+            className="w-full h-full object-cover opacity-95"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
+            <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
+              imagesmode
+            </span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-white drop-shadow-sm">
+              Visual Journey
+            </span>
+          </div>
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-lg">
+            {currentEvent ? currentEvent.title : "Photo"} <span className="text-secondary italic drop-shadow-md">{currentEvent ? "" : "Gallery"}</span>
           </h1>
-          <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto font-light mb-8">
+          <p className="text-white/95 text-lg mt-4 max-w-2xl hidden md:block font-medium drop-shadow-md">
             {currentEvent
               ? currentEvent.description || `Photos from this event at ${schoolProfile?.name || "School"}.`
-              : `Glimpses of academic excellence, vibrant campus life, and memorable events at ${schoolProfile?.name || "School"}.`}
+              : `Glimpses of academic excellence, vibrant campus life, and memorable events.`}
           </p>
         </div>
       </section>

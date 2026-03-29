@@ -6,17 +6,36 @@ const About = () => {
   
   const headMistressPhoto = headMistress?.photo || "/Pictures/assets/head_mistress_photo.png";
   return (
-    <div className="bg-surface min-h-screen py-16 px-4 md:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16 relative">
-          <h2 className="text-5xl md:text-6xl font-black text-primary academic-serif inline-block relative z-10">
-            About Us
-          </h2>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-12 bg-secondary/10 -z-0 rounded-full blur-xl"></div>
-          <div className="flex justify-center mt-6">
-            <div className="w-24 h-1 bg-secondary rounded-full"></div>
-          </div>
+    <div className="bg-surface min-h-screen pb-16 pt-8 px-4 md:px-8">
+      {/* Hero Section */}
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?q=80&w=2070&auto=format&fit=crop"
+            alt="About Holy Name"
+            className="w-full h-full object-cover opacity-95"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
         </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
+            <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
+              info
+            </span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-white drop-shadow-sm">
+              Established 1986
+            </span>
+          </div>
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-lg">
+            About <span className="text-secondary italic drop-shadow-md">Us</span>
+          </h1>
+          <p className="text-white/95 text-lg mt-4 max-w-2xl hidden md:block font-medium drop-shadow-md">
+            Discover our journey of 38 years in academic excellence and holistic student development.
+          </p>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto">
 
         <div className="bg-surface-container-low shadow-2xl rounded-3xl p-8 md:p-14 border border-outline-variant/30 mb-16 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -246,7 +265,7 @@ const About = () => {
                 <div className="flex-1 space-y-4">
                   <p>
                     Fr. Hemanta initiated the opening of the Senior Secondary section of
-                    the school with the Science & Arts Stream in the already existing
+                    the school with the Science, Commerce & Arts Stream in the already existing
                     boys boarding building. The Computer Laboratory in the Senior
                     Secondary section was given a face-lift. In the ground floor of the same building well-equipped laboratories
                     of Physics, Chemistry and Biology are set up for the benefit of

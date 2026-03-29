@@ -7,13 +7,36 @@ function Principal() {
   if (!principal) return null;
 
   return (
-    <div className="min-h-screen bg-surface py-12 px-4 md:px-8">
-      <div className="max-w-4xl mx-auto bg-surface-container-low shadow-2xl rounded-3xl overflow-hidden mt-8 p-8 md:p-12 border border-outline-variant/30 relative">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-secondary to-primary"></div>
-        
-        <h1 className="text-center text-4xl md:text-5xl font-black text-primary mb-6 academic-serif relative z-10 pt-4">
-          From the Principal's Desk
-        </h1>
+    <div className="min-h-screen bg-surface pb-16 pt-8 px-4 md:px-8">
+      {/* Hero Section */}
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop"
+            alt="Principal's Desk"
+            className="w-full h-full object-cover opacity-95"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-left">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
+            <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
+              history_edu
+            </span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-white drop-shadow-sm">
+              Leadership Message
+            </span>
+          </div>
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-lg">
+            From the <span className="text-secondary italic drop-shadow-md">Principal's Desk</span>
+          </h1>
+          <p className="text-white/95 text-lg mt-4 max-w-2xl hidden md:block font-medium drop-shadow-md">
+            A message from our Principal on our vision, values, and commitment to excellence.
+          </p>
+        </div>
+      </section>
+
+      <div className="max-w-4xl mx-auto bg-surface-container-low shadow-2xl rounded-3xl overflow-hidden p-8 md:p-12 border border-outline-variant/30 relative">
         
         <div className="flex justify-center mb-10">
           <div className="w-24 h-1 bg-secondary rounded-full"></div>

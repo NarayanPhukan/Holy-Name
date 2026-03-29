@@ -5,6 +5,7 @@ const Admission = require('../models/Admission');
 const Student = require('../models/Student');
 const SiteContent = require('../models/SiteContent');
 const { protect } = require('../middleware/auth');
+const { submissionLimiter } = require('../middleware/rateLimiters');
 const nodemailer = require('nodemailer');
 
 const router = express.Router();
@@ -146,6 +147,7 @@ router.get('/status', async (req, res) => {
 // POST /api/admissions — public, submit an application
 router.post(
   '/',
+  submissionLimiter,
   upload.fields([
     { name: 'transferCertificate', maxCount: 1 },
     { name: 'marksheet', maxCount: 1 },
@@ -156,7 +158,45 @@ router.post(
   ]),
   async (req, res) => {
     try {
+      const validation = require('../utils/validation');
       const data = req.body;
+
+      // Validate required fields
+      if (!data.studentName || !data.dateOfBirth || !data.gender || !data.gradeApplied || !data.contactNumber || !data.email || !data.address) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+
+      // Validate data formats
+      if (!validation.validateEmail(data.email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
+      }
+      if (!validation.validatePhone(data.contactNumber)) {
+        return res.status(400).json({ message: 'Invalid phone number' });
+      }
+      if (!validation.validateDateOfBirth(data.dateOfBirth)) {
+        return res.status(400).json({ message: 'Invalid date of birth or age out of range' });
+      }
+      if (!validation.validateGrade(data.gradeApplied)) {
+        return res.status(400).json({ message: 'Invalid grade' });
+      }
+      if (!validation.validateGender(data.gender)) {
+        return res.status(400).json({ message: 'Invalid gender' });
+      }
+
+      // Sanitize string inputs
+      data.studentName = validation.sanitizeString(data.studentName);
+      data.address = validation.sanitizeString(data.address);
+      data.email = data.email.toLowerCase().trim();
+      
+      // Validate pincode if provided
+      if (data.pincode && !validation.validatePincode(data.pincode)) {
+        return res.status(400).json({ message: 'Invalid pincode' });
+      }
+
+      // Validate aadhar if provided
+      if (data.aadharNumber && !validation.validateAadhar(data.aadharNumber)) {
+        return res.status(400).json({ message: 'Invalid Aadhar number' });
+      }
 
       if (req.files) {
         if (req.files.transferCertificate) {
@@ -183,19 +223,22 @@ router.post(
         return res.status(400).json({ message: 'At least one of Father, Mother, or Guardian name is required.' });
       }
 
-      // Generate unique reference number
+      // Generate unique reference number using secure random
       const generateRef = () => {
         const year = new Date().getFullYear();
-        const rand = Math.random().toString(36).substring(2, 7).toUpperCase();
+        const crypto = require('crypto');
+        const rand = crypto.randomBytes(3).toString('hex').toUpperCase();
         return `HNS-${year}-${rand}`;
       };
       data.referenceNumber = generateRef();
 
       const admission = await Admission.create(data);
       
-      // Send background email notifications
-      sendSubmissionEmail(admission);
-      sendApplicantConfirmationEmail(admission);
+      // Send background email notifications (fire and forget, not blocking)
+      Promise.all([
+        sendSubmissionEmail(admission),
+        sendApplicantConfirmationEmail(admission)
+      ]).catch(err => console.error('Email sending failed (non-blocking):', err.message));
 
       res.status(201).json({ 
         message: 'Application submitted successfully', 
@@ -211,8 +254,48 @@ router.post(
 // GET /api/admissions — protected, list all applications
 router.get('/', protect, async (req, res) => {
   try {
-    const admissions = await Admission.find().sort({ createdAt: -1 });
-    res.json(admissions);
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 20); // Max 100 per page
+    const skip = (page - 1) * limit;
+    const status = req.query.status; // Optional filter
+    const search = req.query.search; // Optional search
+
+    const query = {};
+    if (status) query.status = status;
+    if (search) {
+      query.$or = [
+        { studentName: { $regex: search, $options: 'i' } },
+        { referenceNumber: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { contactNumber: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const admissions = await Admission.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    const total = await Admission.countDocuments(query);
+    
+    // Summary Stats
+    const totalAccepted = await Admission.countDocuments({ ...query, status: 'accepted' });
+    const totalPending = await Admission.countDocuments({ ...query, status: 'pending' });
+    
+    res.json({
+      data: admissions,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      },
+      stats: {
+        total,
+        accepted: totalAccepted,
+        pending: totalPending
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

@@ -13,7 +13,7 @@ function Home() {
   const { videos, stats, schoolProfile } = useContext(SiteDataContext);
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  const images = schoolProfile?.heroImages?.length > 0 ? schoolProfile.heroImages : [];
+  const images = schoolProfile?.heroImages?.length > 0 ? schoolProfile.heroImages : ["https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop", "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=2070&auto=format&fit=crop"];
 
   useEffect(() => {
     const interval = setInterval(() => {

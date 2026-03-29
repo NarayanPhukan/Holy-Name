@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { FaChevronLeft, FaChevronRight, FaGraduationCap, FaUserTie } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaGraduationCap, FaUserTie, FaFacebook, FaInstagram, FaChalkboardTeacher } from "react-icons/fa";
 import { SiteDataContext } from "../context/SiteDataContext";
 
 function Faculty() {
@@ -41,82 +41,105 @@ function Faculty() {
   const { faculty: facultyData } = useContext(SiteDataContext);
 
   const FacultyCard = ({ member }) => (
-    <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl:shadow-none:shadow-none transition-all duration-300 border border-gray-100 group flex flex-col items-center text-center relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-24 bg-primary opacity-5 group-hover:opacity-10 transition-opacity"></div>
-      <div className="relative z-10 w-32 h-32 mb-6">
-        <div className="absolute inset-0 bg-amber-400 rounded-full blur-sm opacity-20 group-hover:opacity-60 transition-opacity duration-300 transform group-hover:scale-110"></div>
+    <div className="relative bg-white rounded-[2rem] p-6 shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100/80 group overflow-hidden flex flex-col items-center flex-1 transform hover:-translate-y-2 h-full">
+      
+      {/* Decorative background elements */}
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-indigo-100/40 to-blue-50/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 pointer-events-none z-0"></div>
+      <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-br from-amber-100/40 to-orange-50/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 pointer-events-none z-0"></div>
+
+      {/* Experience Badge (Top Right) */}
+      {member.title && (
+        <div className="absolute top-4 right-4 z-20 flex items-center bg-white/90 backdrop-blur-sm border border-gray-100 text-indigo-600 text-[11px] font-bold px-3 py-1.5 rounded-full shadow-sm">
+          <FaUserTie className="mr-1.5 text-indigo-400" size={12} />
+          {member.title}
+        </div>
+      )}
+
+      {/* Profile Image with animated ring on hover */}
+      <div className="relative z-10 w-28 h-28 mb-5 mt-4 group">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-[2px] -m-[2px]"></div>
+        <div className="absolute inset-0 rounded-full border-2 border-dashed border-gray-200 group-hover:border-transparent transition-colors duration-300"></div>
+        <div className="absolute inset-0 bg-white rounded-full m-[1px]"></div>
         <img
-          src={member.photo || null}
+          src={member.photo || "https://images.unsplash.com/photo-1544717302-de2939b7ef71?w=150&h=150&fit=crop"}
           alt={member.name}
-          className="w-full h-full object-cover rounded-full border-4 border-white shadow-md relative z-10"
+          className="w-full h-full object-cover rounded-full shadow-inner relative z-10 p-[2px]"
         />
       </div>
-      <h3 className="text-xl font-serif font-bold text-primary mb-1 group-hover:text-amber-600 transition-colors">{member.name}</h3>
-      <p className="text-sm font-semibold text-amber-600 mb-3">{member.Subject}</p>
-      
-      <div className="w-full h-px bg-gray-100 my-3"></div>
-      
-      <div className="flex flex-col space-y-2 text-sm text-gray-600 w-full">
-        <div className="flex items-center justify-center">
-          <FaGraduationCap className="mr-2 text-gray-400" />
-          <span className="truncate">{member.EduQua}</span>
+
+      {/* Details */}
+      <div className="relative z-10 w-full flex flex-col items-center">
+        <h3 className="text-xl font-bold text-gray-800 mb-1 group-hover:text-indigo-600 transition-colors">{member.name}</h3>
+        <p className="text-[13px] font-bold text-amber-500 tracking-wider uppercase mb-5">{member.Subject}</p>
+
+        <div className="w-full space-y-4 px-1">
+          {member.EduQua && (
+            <div className="flex items-start group/item">
+              <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 mr-3 group-hover/item:bg-indigo-100 transition-colors">
+                <FaGraduationCap className="text-indigo-500" size={14} />
+              </div>
+              <span className="text-sm text-gray-600 leading-tight pt-1.5">{member.EduQua}</span>
+            </div>
+          )}
+          
+          {member.classes && (
+            <div className="flex items-start group/item">
+              <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0 mr-3 group-hover/item:bg-amber-100 transition-colors">
+                <FaChalkboardTeacher className="text-amber-500" size={14} />
+              </div>
+              <span className="text-sm text-gray-600 leading-tight pt-1.5 whitespace-pre-wrap text-left break-words overflow-hidden">{member.classes}</span>
+            </div>
+          )}
         </div>
-        <div className="flex items-center justify-center">
-          <FaUserTie className="mr-2 text-gray-400" />
-          <span>{member.title}</span>
-        </div>
+      </div>
+
+      {/* Social Links Footer */}
+      <div className="relative z-10 w-full mt-auto pt-6 flex flex-col justify-end">
+        {(member.facebook || member.instagram) && (
+          <div className="flex items-center justify-center gap-3 pt-4 border-t border-gray-100 w-full">
+            {member.facebook && (
+              <a href={member.facebook} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full bg-blue-50/50 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all transform hover:-translate-y-1 hover:shadow-md border border-blue-100 hover:border-blue-600">
+                <FaFacebook size={16} />
+              </a>
+            )}
+            {member.instagram && (
+              <a href={member.instagram} target="_blank" rel="noreferrer" className="w-9 h-9 rounded-full bg-pink-50/50 flex items-center justify-center text-pink-600 hover:bg-gradient-to-tr hover:from-orange-500 hover:via-pink-500 hover:to-purple-600 hover:text-white transition-all transform hover:-translate-y-1 hover:shadow-md border border-pink-100 hover:border-transparent">
+                <FaInstagram size={16} />
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
-      <section className="relative w-full h-[35vh] min-h-[280px] overflow-hidden bg-gradient-to-r from-primary to-primary-container">
-        {slides.map((slide, index) => (
-          <div
-            key={slide.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0"
-            }`}
-          >
-            <div
-              className="absolute inset-0 bg-cover bg-center opacity-20 mix-blend-overlay transform scale-105 transition-transform duration-[10000ms] ease-linear"
-              style={{ backgroundImage: `url(${slide.imageUrl})` }}
-            ></div>
-            <div className="absolute inset-0 bg-black/10"></div>
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20 pt-8">
+      {/* Hero Section */}
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2070&auto=format&fit=crop"
+            alt="Faculty"
+            className="w-full h-full object-cover opacity-95"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-left">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
+            <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
+              school
+            </span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-white drop-shadow-sm">
+              Academic Leaders
+            </span>
           </div>
-        ))}
-        
-        <div className="relative z-20 h-full flex flex-col items-center justify-center text-center px-4">
-          <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6 drop-shadow-lg">Our Esteemed Faculty</h1>
-          <p className="text-xl md:text-2xl text-amber-400 font-light drop-shadow-md">
-             {slides[currentSlide].text}
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-lg">
+            Our Esteemed <span className="text-secondary italic drop-shadow-md">Faculty</span>
+          </h1>
+          <p className="text-white/95 text-lg mt-4 max-w-2xl hidden md:block font-medium drop-shadow-md">
+            Meet our dedicated team of educators who are passionate about nurturing young minds and fostering excellence.
           </p>
-          
-          <div className="absolute bottom-8 left-0 right-0 flex justify-center items-center space-x-6">
-            <button
-              onClick={prevSlide}
-              className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-md flex items-center justify-center text-white transition-all border border-white/20"
-            >
-              <FaChevronLeft />
-            </button>
-            <div className="flex space-x-2">
-              {slides.map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                    idx === currentSlide ? "bg-amber-400 w-8" : "bg-white/50"
-                  }`}
-                ></div>
-              ))}
-            </div>
-            <button
-              onClick={nextSlide}
-              className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/30 backdrop-blur-md flex items-center justify-center text-white transition-all border border-white/20"
-            >
-              <FaChevronRight />
-            </button>
-          </div>
         </div>
       </section>
 
@@ -152,21 +175,17 @@ function Faculty() {
           </section>
         )}
 
-        {facultyData.Guest.length > 0 && (
-          <section className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-bl-full -mr-20 -mt-20 opacity-50"></div>
-            <div className="relative z-10">
-              <div className="text-center mb-10">
-                <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary">Guest & Visiting Faculty</h2>
-                <div className="h-1 w-24 bg-amber-500 mx-auto mt-4 rounded-full"></div>
-              </div>
-              <div className="flex justify-center">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-4xl">
-                  {facultyData.Guest.map((faculty, index) => (
-                    <FacultyCard key={`guest-${index}`} member={faculty} />
-                  ))}
-                </div>
-              </div>
+        {facultyData.Commerce?.length > 0 && (
+          <section>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary">Commerce</h2>
+              <div className="h-1 w-24 bg-amber-500 mx-auto mt-4 rounded-full"></div>
+              <p className="mt-4 text-gray-600 max-w-2xl mx-auto">Fostering business acumen and financial literacy with real-world applications.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {facultyData.Commerce.map((faculty, index) => (
+                <FacultyCard key={`commerce-${index}`} member={faculty} />
+              ))}
             </div>
           </section>
         )}

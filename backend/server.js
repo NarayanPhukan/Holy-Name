@@ -23,6 +23,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Trust the first proxy (e.g., Vercel, Render) for accurate rate limiting
+app.set('trust proxy', 1);
+
 // ============================================
 // SECURITY & PERFORMANCE MIDDLEWARE
 // ============================================
@@ -47,27 +50,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Rate limiting — protect auth endpoints from brute force
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 attempts per window
-  message: { message: 'Too many login attempts. Please try again in 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// General API rate limiter
-const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 100, // 100 requests per minute
-  message: { message: 'Too many requests. Please slow down.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// ============================================
-// GENERAL MIDDLEWARE
-// ============================================
+const { apiLimiter, authLimiter, submissionLimiter } = require('./middleware/rateLimiters');
 
 // Request logging
 app.use(morgan(isProduction ? 'combined' : 'dev'));
@@ -102,11 +85,11 @@ app.use('/api/auth/request-otp', authLimiter);
 app.use('/api/auth', apiLimiter, authRoutes);
 
 app.use('/api/content', apiLimiter, contentRoutes);
-app.use('/api/admissions', admissionsRoutes);
-app.use('/api/students', studentsRoutes);
-app.use('/api/inquiries', inquiriesRoutes);
+app.use('/api/admissions', apiLimiter, admissionsRoutes);
+app.use('/api/students', apiLimiter, studentsRoutes);
+app.use('/api/inquiries', submissionLimiter, inquiriesRoutes);
 app.use('/api/jobs', apiLimiter, jobRoutes);
-app.use('/api/job-applications', jobApplicationRoutes);
+app.use('/api/job-applications', apiLimiter, jobApplicationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -141,6 +124,17 @@ process.on('unhandledRejection', (err) => {
 });
 
 // ============================================
+// ENVIRONMENT VALIDATION
+// ============================================
+const validateEnvironment = () => {
+  const required = ['MONGO_URI', 'JWT_SECRET', 'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET', 'EMAIL_USER', 'EMAIL_PASS'];
+  const missing = required.filter(v => !process.env[v]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+};
+
+// ============================================
 // INITIALIZATION & EXPORT
 // ============================================
 
@@ -149,6 +143,10 @@ process.on('unhandledRejection', (err) => {
  */
 const startApp = async () => {
   try {
+    // 0. Validate environment
+    validateEnvironment();
+    console.log('✅ Environment validation passed');
+
     // 1. Establish database connection (cached)
     await connectDB();
 
@@ -158,12 +156,22 @@ const startApp = async () => {
 
     // 3. Start listener if explicitly running as a standalone server
     if (require.main === module) {
-      app.listen(PORT, '0.0.0.0', () => {
+      const server = app.listen(PORT, '0.0.0.0', () => {
         console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      });
+      
+      // Graceful shutdown
+      process.on('SIGTERM', () => {
+        console.log('SIGTERM received, shutting down gracefully...');
+        server.close(() => {
+          console.log('Server closed');
+          process.exit(0);
+        });
       });
     }
   } catch (err) {
     console.error(`❌ Application failed to start: ${err.message}`);
+    process.exit(1);
   }
 };
 

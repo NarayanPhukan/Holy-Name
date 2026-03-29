@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaBookOpen, FaAtom, FaBalanceScale, FaLandmark, FaChild, FaGraduationCap } from "react-icons/fa";
+import { FaBookOpen, FaAtom, FaBalanceScale, FaLandmark, FaChild, FaGraduationCap, FaShieldAlt } from "react-icons/fa";
 
 function Courses() {
   const [selectedCategory, setSelectedCategory] = useState("Science");
@@ -34,6 +34,10 @@ function Courses() {
     { title: "Lower Primary", desc: "Building core academic competencies in a supportive setting, encouraging independent thought and collaborative learning.", icon: <FaBookOpen className="text-3xl text-amber-500" /> },
     { title: "Upper Primary", desc: "Expanding knowledge horizons with a diverse curriculum designed to challenge and inspire growing minds.", icon: <FaBookOpen className="text-3xl text-amber-500" /> },
     { title: "Secondary School", desc: "Preparing students for rigorous academic challenges and holistic personal development ahead of crucial board examinations.", icon: <FaGraduationCap className="text-3xl text-amber-500" /> },
+    { title: "HS Science", desc: "Specialized focus on Physics, Chemistry, Biology, and Mathematics to prepare students for engineering, medical, and research careers.", icon: <FaAtom className="text-3xl text-amber-500" /> },
+    { title: "HS Commerce", desc: "In-depth study of Accountancy, Business Studies, and Economics, building a strong foundation for future business and financial leaders.", icon: <FaBalanceScale className="text-3xl text-amber-500" /> },
+    { title: "HS Arts", desc: "Comprehensive exploration of Humanities, History, and Political Science, fostering critical thinking and social awareness.", icon: <FaLandmark className="text-3xl text-amber-500" /> },
+    { title: "NCC 11th Assam Battalion", desc: "Elite membership program focused on discipline, leadership, and national service, building character through rigorous training.", icon: <FaShieldAlt className="text-3xl text-amber-500" /> },
   ];
 
   const rules = [
@@ -46,15 +50,31 @@ function Courses() {
   ];
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800">
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20 pt-8">
       {/* Hero Section */}
-      <section className="relative w-full h-[35vh] min-h-[280px] flex items-center justify-center bg-gradient-to-r from-primary to-primary-container overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative z-10 text-center px-4">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight">Academic Programmes</h1>
-          <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto font-light">
-            Empowering students with a comprehensive and dynamic curriculum designed for holistic excellence.
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=2070&auto=format&fit=crop"
+            alt="Courses"
+            className="w-full h-full object-cover opacity-95"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
+            <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
+              menu_book
+            </span>
+            <span className="text-xs font-bold tracking-[0.2em] uppercase text-white drop-shadow-sm">
+              Academic Excellence
+            </span>
+          </div>
+          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-lg">
+            Academic <span className="text-secondary italic drop-shadow-md">Programmes</span>
+          </h1>
+          <p className="text-white/95 text-lg mt-4 max-w-2xl hidden md:block font-medium drop-shadow-md">
+            Explore our diverse and rigorous curriculum designed to inspire curiosity and foster lifelong learning.
           </p>
         </div>
       </section>

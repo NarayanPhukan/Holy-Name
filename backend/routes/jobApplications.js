@@ -5,6 +5,7 @@ const cloudinary = require('../config/cloudinary');
 const JobApplication = require('../models/JobApplication');
 const SiteContent = require('../models/SiteContent');
 const { protect, authorize } = require('../middleware/auth');
+const { submissionLimiter } = require('../middleware/rateLimiters');
 const nodemailer = require('nodemailer');
 
 const router = express.Router();
@@ -106,6 +107,7 @@ const upload = multer({
 // @access  Public
 router.post(
   '/',
+  submissionLimiter,
   upload.fields([
     { name: 'marksheet10', maxCount: 1 }, { name: 'cert10', maxCount: 1 },
     { name: 'marksheet12', maxCount: 1 }, { name: 'cert12', maxCount: 1 },

@@ -14,15 +14,14 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
       
-      next();
+      return next();
     } catch (error) {
       return res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
 
-  if (!token) {
-    return res.status(401).json({ message: 'Not authorized, no token' });
-  }
+  // No token provided
+  return res.status(401).json({ message: 'Not authorized, no token' });
 };
 
 const authorize = (...roles) => {

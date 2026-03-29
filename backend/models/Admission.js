@@ -34,6 +34,7 @@ const admissionSchema = new mongoose.Schema({
   transferCertificate: String, // file path
   marksheet: String, // file path
   casteCertificate: String, // file path (compulsory if not General)
+  nccInterest: { type: Boolean, default: false },
   status: { type: String, enum: ['pending', 'reviewed', 'accepted', 'rejected'], default: 'pending' },
   referenceNumber: { type: String, required: true, unique: true },
 }, { timestamps: true });
