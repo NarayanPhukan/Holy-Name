@@ -66,7 +66,7 @@ const EventsSection = () => {
   return (
     <div className="bg-gradient-to-br from-[#1a1a2e] via-[#15152a] to-[#0d0d1a] rounded-3xl overflow-hidden font-sans text-gray-200 pb-16 shadow-2xl">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
-      <div className="py-12 px-6 text-center bg-white/5">
+      <div className="py-12 px-4 md:px-8 text-center bg-white/5">
         <h2 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4 tracking-tight flex items-center justify-center">
           <FaCalendarAlt className="text-amber-500 mr-4 drop-shadow-lg" />
           Our Events
@@ -77,7 +77,7 @@ const EventsSection = () => {
         </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 mt-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-12">
         {/* ── Events Grid ────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {visibleEvents.map((event) => (

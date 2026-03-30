@@ -7,9 +7,9 @@ function Principal() {
   if (!principal) return null;
 
   return (
-    <div className="min-h-screen bg-surface pb-16 pt-8 px-4 md:px-8">
+    <div className="min-h-screen bg-surface pb-16">
       {/* Hero Section */}
-      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-none md:rounded-b-[3rem] shadow-xl border-b border-blue-50/50 mb-4">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop"
@@ -18,7 +18,7 @@ function Principal() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-left">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 w-full text-left">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
             <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
               history_edu
@@ -36,7 +36,7 @@ function Principal() {
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto bg-surface-container-low shadow-2xl rounded-3xl overflow-hidden p-8 md:p-12 border border-outline-variant/30 relative">
+      <div className="max-w-4xl mx-auto px-4 md:px-8 -mt-10 z-20 bg-surface-container-low shadow-2xl rounded-3xl overflow-hidden p-8 md:p-14 border border-outline-variant/30 relative">
         
         <div className="flex justify-center mb-10">
           <div className="w-24 h-1 bg-secondary rounded-full"></div>
@@ -48,12 +48,12 @@ function Principal() {
         
         <div className="flex flex-col items-center">
           {principal.photo && !principal.photo.includes("signature") && (
-            <div className="relative mb-10 group">
+            <div className="relative mb-10 group w-64 md:w-80 max-w-full">
               <div className="absolute inset-0 bg-primary rounded-3xl transform rotate-3 group-hover:rotate-6 transition-transform duration-300"></div>
               <img
                 src={principal.photo}
                 alt={principal.name}
-                className="relative w-80 h-auto rounded-3xl shadow-xl transition-transform duration-300 group-hover:-translate-y-2 border-4 border-white"
+                className="relative w-full h-auto rounded-3xl shadow-xl transition-transform duration-300 group-hover:-translate-y-2 border-4 border-white"
               />
             </div>
           )}

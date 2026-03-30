@@ -121,9 +121,9 @@ function StudentPortal() {
   const activeStep = statusData ? getActiveStep(statusData.status) : 0;
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20 pt-8">
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
       {/* Hero Section */}
-      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-none md:rounded-b-[3rem] shadow-xl border-b border-blue-50/50 mb-10">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop"
@@ -132,7 +132,7 @@ function StudentPortal() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full text-left">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 w-full text-left">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
             <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
               verified_user
@@ -150,7 +150,7 @@ function StudentPortal() {
         </div>
       </section>
 
-      <div className="max-w-4xl mx-auto px-6 -mt-14 relative z-20">
+      <div className="max-w-4xl mx-auto px-4 md:px-8 -mt-14 relative z-20">
         {/* Search Card */}
         <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-100">
           <form onSubmit={handleSearch} className="mb-6">

@@ -6,9 +6,9 @@ const About = () => {
   
   const headMistressPhoto = headMistress?.photo || "/Pictures/assets/head_mistress_photo.png";
   return (
-    <div className="bg-surface min-h-screen pb-16 pt-8 px-4 md:px-8">
+    <div className="bg-surface min-h-screen pb-16">
       {/* Hero Section */}
-      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-none md:rounded-b-[3rem] shadow-xl border-b border-blue-50/50 mb-10">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?q=80&w=2070&auto=format&fit=crop"
@@ -17,7 +17,7 @@ const About = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 w-full">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
             <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
               info
@@ -35,7 +35,7 @@ const About = () => {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
 
         <div className="bg-surface-container-low shadow-2xl rounded-3xl p-8 md:p-14 border border-outline-variant/30 mb-16 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>

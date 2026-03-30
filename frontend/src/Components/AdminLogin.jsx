@@ -64,47 +64,54 @@ function AdminLogin() {
   }, [token, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] font-sans relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-[40vh] bg-primary">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=2073&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary"></div>
+    <div className="min-h-screen flex items-center justify-center font-sans relative overflow-hidden">
+      {/* Full-screen Background Image */}
+      <div className="absolute inset-0">
+        <img 
+          src="/Pictures/picturesoftheweb/school building.JPG" 
+          alt="" 
+          className="w-full h-full object-cover"
+        />
+        {/* Dark gradient overlay for readability */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(15,23,42,0.88) 0%, rgba(30,41,59,0.82) 50%, rgba(15,23,42,0.90) 100%)' }} />
+        {/* Subtle pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
       </div>
       
       <div className="relative z-10 w-full max-w-md px-6">
         
         {/* Logo/Header Area */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-6 transform rotate-3 hover:rotate-0 transition-transform duration-300">
-            <FaUserCircle className="text-5xl text-primary" />
+          <div className="w-20 h-20 rounded-2xl shadow-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/20" style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.9) 0%, rgba(37,99,235,0.95) 100%)' }}>
+            <FaUserCircle className="text-4xl text-white" />
           </div>
-          <h1 className="text-3xl font-serif font-bold text-white mb-2">Admin Portal</h1>
-          <p className="text-white/80 font-medium">{schoolProfile?.name || "School"}</p>
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>Admin Portal</h1>
+          <p className="text-blue-200/80 font-medium text-sm tracking-wide">{schoolProfile?.name || "School"}</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-10 border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Sign In</h2>
+        <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 md:p-10 border border-white/30">
+          <h2 className="text-xl font-bold text-gray-800 mb-6 text-center">Sign In</h2>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             
             {error && (
-              <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl flex items-start text-sm font-medium animate-fade-in">
+              <div className="p-3.5 bg-red-50 border border-red-200 text-red-600 rounded-xl flex items-start text-sm font-medium">
                 <FaExclamationCircle className="mt-0.5 mr-2 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
             <div className="relative">
-              <label className="block text-sm font-bold text-gray-700 mb-2 ml-1" htmlFor="username">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1" htmlFor="username">
                 Username or Email
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <FaEnvelope className="text-gray-400 group-focus-within:text-primary transition-colors" />
+                  <FaEnvelope className="text-gray-300 group-focus-within:text-blue-500 transition-colors" />
                 </div>
                 <input
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-gray-800"
                   id="username"
                   type="text"
                   value={username}
@@ -116,19 +123,19 @@ function AdminLogin() {
 
             <div className="relative">
               <div className="flex justify-between items-center mb-2 ml-1">
-                <label className="block text-sm font-bold text-gray-700" htmlFor="password">
+                <label className="block text-sm font-semibold text-gray-700" htmlFor="password">
                   Password
                 </label>
-                <a href="#" className="text-xs font-bold text-primary hover:text-amber-600 transition-colors">
+                <a href="#" className="text-xs font-semibold text-blue-500 hover:text-blue-700 transition-colors">
                   Forgot Password?
                 </a>
               </div>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <FaLock className="text-gray-400 group-focus-within:text-primary transition-colors" />
+                  <FaLock className="text-gray-300 group-focus-within:text-blue-500 transition-colors" />
                 </div>
                 <input
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white:bg-[#1E293B]:bg-[#1E293B] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-gray-800"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-gray-200 bg-gray-50/80 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-gray-800"
                   id="password"
                   type="password"
                   value={password}
@@ -139,7 +146,8 @@ function AdminLogin() {
             </div>
 
             <button
-              className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl:shadow-none:shadow-none transition-all flex items-center justify-center transform hover:-translate-y-1 relative overflow-hidden"
+              className="w-full text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center transform hover:-translate-y-0.5 relative overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)' }}
               type="submit"
               disabled={loading}
             >
@@ -157,10 +165,10 @@ function AdminLogin() {
             </button>
           </form>
 
-          <div className="mt-8 text-center pt-6 border-t border-gray-100">
+          <div className="mt-6 text-center pt-5 border-t border-gray-100">
             <p className="text-gray-500 text-sm">
               New administrator?{" "}
-              <Link to="/signup" className="text-primary font-bold hover:text-amber-600 transition-colors">
+              <Link to="/signup" className="text-blue-600 font-bold hover:text-blue-800 transition-colors">
                 Request Access
               </Link>
             </p>
@@ -168,7 +176,7 @@ function AdminLogin() {
         </div>
         
         {/* Footer info */}
-        <p className="text-center text-gray-500 text-sm mt-8">
+        <p className="text-center text-white/40 text-xs mt-8">
           &copy; {new Date().getFullYear()} {schoolProfile?.name || "School"}. All rights reserved.
         </p>
       </div>

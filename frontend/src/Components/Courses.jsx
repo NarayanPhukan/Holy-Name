@@ -50,9 +50,9 @@ function Courses() {
   ];
 
   return (
-    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20 pt-8">
+    <div className="bg-[#FAFAFA] min-h-screen font-sans text-gray-800 pb-20">
       {/* Hero Section */}
-      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-3xl mx-auto max-w-[98%] shadow-xl border border-blue-50/50 mb-12">
+      <section className="relative w-full h-[300px] md:h-[400px] flex items-center overflow-hidden bg-white rounded-none md:rounded-b-[3rem] shadow-xl border-b border-blue-50/50 mb-10">
         <div className="absolute inset-0 z-0">
           <img
             src="https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=2070&auto=format&fit=crop"
@@ -61,7 +61,7 @@ function Courses() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-blue-700/60 via-blue-700/30 to-transparent"></div>
         </div>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 w-full">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50/30 text-white border border-white/20 backdrop-blur-sm shadow-sm mb-4">
             <span className="material-symbols-outlined text-sm text-white drop-shadow-sm">
               menu_book
@@ -80,7 +80,7 @@ function Courses() {
       </section>
 
       {/* School Levels Grid */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
+      <section className="py-20 px-4 md:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary mb-4">Educational Wings</h2>
           <div className="h-1 w-20 bg-amber-500 mx-auto rounded-full"></div>
@@ -109,7 +109,7 @@ function Courses() {
 
       {/* Higher Secondary Section (11th & 12th) */}
       <section className="py-20 bg-[#F9F9FB]">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between mb-12">
             <div className="md:w-1/2 mb-8 md:mb-0 pr-0 md:pr-12">
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary mb-4">Higher Secondary</h2>
@@ -165,7 +165,7 @@ function Courses() {
       </section>
 
       {/* Rules and Regulations */}
-      <section className="py-20 px-6 max-w-5xl mx-auto">
+      <section className="py-20 px-4 md:px-8 max-w-5xl mx-auto">
         <div className="bg-primary rounded-3xl p-8 md:p-14 shadow-2xl relative overflow-hidden text-white">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20"></div>
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-white opacity-5 rounded-full -ml-10 -mb-10"></div>

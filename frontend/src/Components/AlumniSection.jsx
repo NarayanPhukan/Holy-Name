@@ -55,7 +55,7 @@ const AlumniSection = () => {
         <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-indigo-400/[0.15] rounded-full blur-[100px]"></div>
       </div>
 
-      <div className="container mx-auto px-4 relative z-10 text-center">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 backdrop-blur-xl border border-primary/20 mb-2 shadow-sm">
           <FaGraduationCap className="text-primary text-sm" />
           <span className="text-[11px] font-bold tracking-[0.3em] text-primary uppercase">

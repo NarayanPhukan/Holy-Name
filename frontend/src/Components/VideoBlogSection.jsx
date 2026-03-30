@@ -1,8 +1,6 @@
 import React, { useContext } from 'react';
 import { SiteDataContext } from '../context/SiteDataContext';
 
-
-
 const VideoCard = ({ src, title }) => {
   const getYouTubeEmbedUrl = (url) => {
     if (!url) return '';
@@ -16,7 +14,7 @@ const VideoCard = ({ src, title }) => {
       } else if (url.includes('youtube.com/embed/')) {
         videoId = url.split('youtube.com/embed/')[1].split('?')[0];
       } else {
-           return url;
+        return url;
       }
       return `https://www.youtube.com/embed/${videoId}?rel=0`;
     } catch (e) {
@@ -26,76 +24,40 @@ const VideoCard = ({ src, title }) => {
 
   const embedUrl = getYouTubeEmbedUrl(src);
 
-  const cardStyle = {
-    border: '2px solid rgb(59 130 246)',
-    padding: '10px',
-    margin: '10px',
-    width: '300px',
-    textAlign: 'center',
-    borderRadius: '8px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    transition: 'transform 0.2s',
-    backgroundColor: '#fff',
-  };
-
-  const cardHoverStyle = {
-    transform: 'scale(1.05)',
-  };
-
-  const videoStyle = {
-    width: '100%',
-    height: '200px',
-    background: '#ccc', // Placeholder for video
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: '10px',
-    borderRadius: '4px',
-  };
-
-  const titleStyle = {
-    fontSize: '16px',
-    fontWeight: 'bold',
-    color: '#333',
-  };
-
   const isYouTube = (url) => {
     if (!url) return false;
     return url.includes('youtube.com') || url.includes('youtu.be');
   };
 
   return (
-    <div
-      style={cardStyle}
-      className="hover:scale-105 transition-transform duration-200"
-    >
-      <div style={videoStyle} className="bg-gray-100 flex items-center justify-center">
+    <div className="bg-white border-2 border-primary rounded-2xl p-3 shadow-md hover:scale-105 transition-transform duration-300 w-full sm:w-[320px] mx-auto">
+      <div className="aspect-video bg-slate-100 flex items-center justify-center rounded-lg overflow-hidden mb-3">
         {isYouTube(src) ? (
           <iframe 
             src={embedUrl || null}
             width="100%" 
-            height="200px" 
+            height="100%" 
             frameBorder="0" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; compute-pressure" 
             allowFullScreen 
             title={title}
-            style={{ borderRadius: '4px' }}
           ></iframe>
         ) : (
           <video 
             src={src || null}
             width="100%" 
-            height="200px" 
+            height="100%" 
             controls
             title={title}
-            style={{ borderRadius: '4px', objectFit: 'cover' }}
-            className="bg-black"
+            className="bg-black object-cover"
           >
             Your browser does not support the video tag.
           </video>
         )}
       </div>
-      <div style={titleStyle}>{title}</div>
+      <div className="text-slate-800 font-bold text-center leading-tight line-clamp-2 px-2">
+        {title}
+      </div>
     </div>
   );
 };
@@ -107,38 +69,19 @@ const VideoBlogSection = () => {
     return null;
   }
 
-  const sectionStyle = {
-    textAlign: 'center',
-    padding: '40px 20px',
-    background: 'linear-gradient(135deg, #f6f8fa, #eaeff3)',
-    borderRadius: '8px',
-    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
-  };
-
-  const videosContainerStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '20px',
-  };
-
-  const titleStyle = {
-    fontSize: '32px',
-    marginBottom: '20px',
-    fontWeight: 'bold',
-    color: '#333',
-  };
-
   return (
-    <div style={sectionStyle} className=''>
-      <div style={titleStyle}>VIDEO BLOG</div>
-      <div style={videosContainerStyle} className=''>
-        {videos.map((video, index) => (
-          <VideoCard key={index} src={video.src} title={video.title} />
-        ))}
+    <section className="py-12 px-4 md:px-8 bg-gradient-to-br from-[#f6f8fa] to-[#eaeff3] rounded-3xl shadow-lg border border-slate-100 overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-black text-slate-800 text-center mb-10 tracking-tight uppercase">
+          Video Blog
+        </h2>
+        <div className="flex flex-wrap justify-center items-stretch gap-6 lg:gap-8">
+          {videos.map((video, index) => (
+            <VideoCard key={index} src={video.src} title={video.title} />
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

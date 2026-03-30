@@ -29,7 +29,7 @@ function Home() {
 
 
         {/* Hero Section */}
-        <section className="relative w-full h-[600px] lg:h-[716px] flex items-center overflow-hidden bg-slate-900 rounded-3xl mx-auto max-w-[98%] shadow-2xl">
+        <section className="relative w-full h-[600px] lg:h-[716px] flex items-center overflow-hidden bg-slate-900 rounded-none md:rounded-b-[4rem] shadow-2xl mb-12">
           <div className="absolute inset-0 z-0">
             {images.map((img, idx) => (
               <img
@@ -43,7 +43,7 @@ function Home() {
             ))}
             <div className="absolute inset-0 bg-gradient-to-r from-[#1E40AF]/75 via-[#1E40AF]/40 to-transparent"></div>
           </div>
-          <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -145,7 +145,7 @@ function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className={`max-w-7xl mx-auto px-6 grid grid-cols-2 gap-4 ${
+              className={`max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-2 gap-4 ${
                 stats.length === 1 ? 'md:grid-cols-1 max-w-sm' :
                 stats.length === 2 ? 'md:grid-cols-2 max-w-screen-md' :
                 stats.length === 3 ? 'md:grid-cols-3 max-w-screen-lg' :
@@ -167,28 +167,52 @@ function Home() {
         )}
 
         {/* Values Section */}
-        <section className="w-full py-8 my-4 bg-gradient-to-b from-primary/10 to-primary/5 relative">
-          <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+        <section className="w-full py-16 md:py-24 my-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 40%, #0F172A 100%)' }}>
+          {/* Decorative Elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Glowing orbs */}
+            <div className="absolute top-10 left-[10%] w-72 h-72 rounded-full opacity-[0.07]" style={{ background: 'radial-gradient(circle, #3B82F6 0%, transparent 70%)' }} />
+            <div className="absolute bottom-10 right-[10%] w-96 h-96 rounded-full opacity-[0.05]" style={{ background: 'radial-gradient(circle, #8B5CF6 0%, transparent 70%)' }} />
+            {/* Dot pattern */}
+            <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.5) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+            {/* Floating accent lines */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl shadow-primary/10 rounded-3xl p-12 md:p-20 text-center relative overflow-hidden"
+              className="text-center"
             >
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-primary-container"></div>
-              <span className="material-symbols-outlined text-primary/5 text-9xl absolute -bottom-10 -right-10 pointer-events-none">
-                school
-              </span>
-              <h3 className="font-serif text-3xl md:text-5xl font-black mb-6 text-slate-800">
-                Why Holy Name?
+              {/* Accent badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 mb-8">
+                <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+                <span className="text-blue-300 text-xs font-semibold uppercase tracking-widest">Our Promise</span>
+              </div>
+
+              <h3 className="text-4xl md:text-6xl font-black mb-8 text-white leading-tight tracking-tight">
+                Why <span className="bg-gradient-to-r from-blue-400 to-blue-300 bg-clip-text text-transparent">Holy Name</span>?
               </h3>
-              <p className="text-lg md:text-2xl text-slate-700 leading-relaxed max-w-4xl mx-auto font-medium">
-                "Because at Holy Name, we foster curiosity, creativity, and a love
+              
+              <p className="text-lg md:text-xl text-slate-300/90 leading-relaxed max-w-3xl mx-auto font-medium">
+                Because at Holy Name, we foster curiosity, creativity, and a love
                 for learning, nurturing students to become confident,
-                compassionate leaders of tomorrow. Empowering young minds to
-                dream, discover, and achieve."
+                compassionate leaders of tomorrow.
               </p>
+              <p className="text-base md:text-lg text-slate-400/70 mt-4 max-w-2xl mx-auto italic">
+                "Empowering young minds to dream, discover, and achieve."
+              </p>
+
+              {/* Decorative underline */}
+              <div className="mt-10 flex items-center justify-center gap-2">
+                <div className="w-8 h-0.5 rounded-full bg-blue-500/40" />
+                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 shadow-lg shadow-blue-500/30" />
+                <div className="w-8 h-0.5 rounded-full bg-blue-500/40" />
+              </div>
             </motion.div>
           </div>
         </section>
@@ -196,7 +220,7 @@ function Home() {
         <AlumniSection />
 
         {/* Existing Component Grid */}
-        <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-10 py-6">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-10 py-6">
           <HighlightsSection />
 
           <motion.section
@@ -222,15 +246,14 @@ function Home() {
           </motion.section>
 
           {videos && videos.length > 0 && (
-            <motion.section
+            <motion.div
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7 }}
-              className="bg-blue-50 border border-blue-100 text-slate-800 rounded-3xl p-8 md:p-12 overflow-hidden shadow-xl"
             >
               <VideoBlogSection />
-            </motion.section>
+            </motion.div>
           )}
 
 

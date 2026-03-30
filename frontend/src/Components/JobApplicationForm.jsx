@@ -287,12 +287,12 @@ function JobApplicationForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 mt-20">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <div className="max-w-4xl mx-auto px-6">
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
           
           {/* Header */}
-          <div className="p-8 md:p-12 text-white relative overflow-hidden bg-primary">
+          <div className="p-8 md:p-12 text-white relative overflow-hidden bg-primary rounded-none md:rounded-b-[3rem] mb-10 shadow-lg">
             <div className="absolute inset-0 z-0">
               <img
                 src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=2070&auto=format&fit=crop"

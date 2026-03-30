@@ -2216,73 +2216,114 @@ function AdminPage() {
 
   const renderDashboard = () => (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-        {dashboardStats.map((stat, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-              <p className="text-gray-500 text-sm font-medium mb-1">{stat.label}</p>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-800">{stat.value}</h3>
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-8">
+        {dashboardStats.map((stat, idx) => {
+          const gradients = [
+            'from-blue-500 to-blue-600',
+            'from-emerald-500 to-emerald-600', 
+            'from-amber-500 to-amber-600',
+            'from-violet-500 to-violet-600'
+          ];
+          const shadowColors = [
+            'shadow-blue-200',
+            'shadow-emerald-200',
+            'shadow-amber-200',
+            'shadow-violet-200'
+          ];
+          return (
+            <div 
+              key={idx} 
+              className="group relative bg-white rounded-2xl p-5 border border-gray-100/80 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-default overflow-hidden"
+            >
+              {/* Subtle gradient accent at top */}
+              <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${gradients[idx]} opacity-80`} />
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">{stat.label}</p>
+                  <h3 className="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">{stat.value}</h3>
+                </div>
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradients[idx]} flex items-center justify-center text-white text-lg shadow-lg ${shadowColors[idx]} group-hover:scale-110 transition-transform duration-300`}>
+                  {stat.icon && React.cloneElement(stat.icon, { className: 'text-white' })}
+                </div>
+              </div>
             </div>
-            <div className={`w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center text-xl md:text-2xl ${stat.bg}`}>
-              {stat.icon}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h3 className="text-xl font-bold text-gray-800">Recent Applications</h3>
+      {/* Recent Applications Table */}
+      <div className="bg-white rounded-2xl border border-gray-100/80 overflow-hidden shadow-sm">
+        <div className="p-5 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h3 className="text-lg font-bold text-gray-800">Recent Applications</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Latest student admission requests</p>
+          </div>
           <div className="relative w-full sm:w-64">
-            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 text-sm" />
             <input 
               type="text" 
-              placeholder="Search by name or reference..." 
+              placeholder="Search by name or ref..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200/80 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all placeholder:text-gray-400"
             />
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
-              <tr className="bg-gray-50 text-gray-500 text-xs md:text-sm uppercase tracking-wider">
-                <th className="px-6 py-4 font-medium">App ID</th>
-                <th className="px-6 py-4 font-medium">Student Name</th>
-                <th className="px-6 py-4 font-medium">Grade Applied</th>
-                <th className="px-6 py-4 font-medium">Date Sent</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
+              <tr className="bg-gray-50/80">
+                <th className="px-6 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">App ID</th>
+                <th className="px-6 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Student Name</th>
+                <th className="px-6 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Grade</th>
+                <th className="px-6 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-50">
               {recentApps.map((app, idx) => (
-                <tr key={idx} className="hover:bg-gray-50:bg-[#0F172A]:bg-[#0F172A] transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900 text-sm">{app.id}</td>
-                  <td className="px-6 py-4 text-gray-700 text-sm">{app.name}</td>
-                  <td className="px-6 py-4 text-gray-700 text-sm">{app.grade}</td>
-                  <td className="px-6 py-4 text-gray-500 text-xs md:text-sm">{app.date}</td>
+                <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                  <td className="px-6 py-4 font-mono text-xs font-semibold text-blue-600">{app.id}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-[10px] md:text-xs font-bold ${
-                      app.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                      app.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                      'bg-amber-100 text-amber-700'
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center text-blue-600 text-xs font-bold">
+                        {app.name?.charAt(0) || '?'}
+                      </div>
+                      <span className="text-sm font-medium text-gray-800">{app.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4"><span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg">{app.grade}</span></td>
+                  <td className="px-6 py-4 text-gray-400 text-xs">{app.date}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-lg text-[11px] font-semibold ${
+                      app.status === 'Approved' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                      app.status === 'Rejected' ? 'bg-red-50 text-red-600 border border-red-100' :
+                      'bg-amber-50 text-amber-600 border border-amber-100'
                     }`}>
                       {app.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button onClick={() => setSelectedApp(app.originalApp)} className="text-primary hover:underline font-medium text-sm mr-3">View</button>
+                    <button onClick={() => setSelectedApp(app.originalApp)} className="text-blue-500 hover:text-blue-700 font-medium text-xs mr-3 hover:underline transition-colors">View</button>
                     {app.status === 'Pending' && (
                       <>
-                        <button onClick={() => handleStatusUpdate(app.originalApp._id, 'accepted')} className="text-green-600 hover:underline font-medium text-sm mr-3">Approve</button>
-                        <button onClick={() => handleStatusUpdate(app.originalApp._id, 'rejected')} className="text-red-600 hover:underline font-medium text-sm">Reject</button>
+                        <button onClick={() => handleStatusUpdate(app.originalApp._id, 'accepted')} className="text-emerald-500 hover:text-emerald-700 font-medium text-xs mr-3 transition-colors">Approve</button>
+                        <button onClick={() => handleStatusUpdate(app.originalApp._id, 'rejected')} className="text-red-400 hover:text-red-600 font-medium text-xs transition-colors">Reject</button>
                       </>
                     )}
                   </td>
                 </tr>
               ))}
+              {recentApps.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 text-sm">
+                    <FaClipboardList className="mx-auto text-2xl text-gray-200 mb-2" />
+                    No applications found
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -3040,11 +3081,11 @@ function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-surface flex font-sans relative overflow-x-hidden">
+    <div className="min-h-screen flex font-sans relative overflow-x-hidden" style={{ backgroundColor: '#F1F5F9' }}>
       {/* Sidebar Overlay for Mobile */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -3052,28 +3093,43 @@ function AdminPage() {
       {/* Sidebar */}
       <div className={`
         fixed inset-y-0 left-0 lg:relative z-50 lg:z-auto
-        w-64 lg:h-[100dvh] bg-primary text-white flex flex-col shadow-2xl overflow-y-auto
+        w-72 lg:h-[100dvh] text-white flex flex-col shadow-2xl overflow-y-auto
         transition-transform duration-300 ease-in-out lg:translate-x-0
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <div className="p-6 border-b border-white/10 flex items-center justify-between shrink-0">
-          <h2 className="text-xl md:text-2xl font-headline font-bold text-tertiary tracking-wider">
-            {schoolProfile?.name || "School"}
-            <span className="text-white text-[10px] md:text-sm block tracking-normal mt-1 opacity-80 text-center">Admin Panel</span>
-          </h2>
-          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-white hover:text-tertiary transition-colors">
-            <FaTimes size={20} />
+      `} style={{ background: 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)' }}>
+        {/* Brand Area */}
+        <div className="p-6 shrink-0 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-slate-700/80 flex items-center justify-center border border-slate-600/30">
+              <FaGraduationCap className="text-blue-300 text-lg" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-slate-200 leading-tight tracking-wide">
+                {schoolProfile?.name || "School"}
+              </h2>
+              <span className="text-[10px] text-slate-500 font-medium uppercase tracking-[0.2em]">Admin Console</span>
+            </div>
+          </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-1.5 rounded-lg hover:bg-white/10 text-white/60 hover:text-white transition-colors">
+            <FaTimes size={18} />
           </button>
         </div>
-        <div className="flex-1 py-6 flex flex-col gap-1 px-3">
+
+        {/* Navigation */}
+        <div className="flex-1 py-4 flex flex-col gap-0.5 px-3 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+          {/* Dashboard - Primary Action */}
           <button 
             onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}
-            className={`flex items-center w-full px-4 py-3 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
+            className={`group flex items-center w-full px-4 py-2.5 rounded-xl transition-all duration-200 ${activeTab === 'dashboard' ? 'bg-blue-600/20 text-white font-semibold shadow-sm shadow-blue-500/10' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
           >
-            <FaChartLine className="mr-3 text-lg" /> Dashboard
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-colors ${activeTab === 'dashboard' ? 'bg-blue-500 text-white shadow-md shadow-blue-500/40' : 'bg-slate-700/50 text-slate-400 group-hover:bg-slate-700 group-hover:text-white'}`}>
+              <FaChartLine className="text-sm" />
+            </div>
+            <span className="text-sm">Dashboard</span>
+            {activeTab === 'dashboard' && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />}
           </button>
           
-          <div className="text-[10px] text-white/30 uppercase tracking-widest font-black mt-6 mb-2 px-4">Content Management</div>
+          <div className="text-[10px] text-slate-500 uppercase tracking-[0.15em] font-semibold mt-6 mb-2 px-4">Content Management</div>
           
           {[
             { id: 'schoolProfile', label: 'School Profile', icon: <FaInfoCircle /> },
@@ -3094,101 +3150,120 @@ function AdminPage() {
             <button 
               key={item.id}
               onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }}
-              className={`flex items-center w-full px-4 py-3 rounded-xl transition-all ${activeTab === item.id ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
+              className={`group flex items-center w-full px-4 py-2.5 rounded-xl transition-all duration-200 ${activeTab === item.id ? 'bg-blue-600/20 text-white font-semibold' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
             >
-              <span className="mr-3 text-lg">{item.icon}</span>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-colors text-sm ${activeTab === item.id ? 'bg-blue-500 text-white shadow-md shadow-blue-500/40' : 'bg-slate-700/50 text-slate-400 group-hover:bg-slate-700 group-hover:text-white'}`}>
+                {item.icon}
+              </div>
               <span className="text-sm">{item.label}</span>
+              {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400" />}
             </button>
           ))}
 
-          <div className="text-[10px] text-white/30 uppercase tracking-widest font-black mt-6 mb-2 px-4">School Data</div>
-          <button 
-            onClick={() => { setActiveTab('applications'); setIsSidebarOpen(false); }}
-            className={`flex items-center w-full px-4 py-3 rounded-xl transition-all ${activeTab === 'applications' ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
-          >
-            <FaClipboardList className="mr-3 text-lg" /> Applications
-          </button>
-          <button 
-            onClick={() => { setActiveTab('students'); setIsSidebarOpen(false); }}
-            className={`flex items-center w-full px-4 py-3 rounded-xl transition-all ${activeTab === 'students' ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
-          >
-            <FaUsers className="mr-3 text-lg" /> Students
-          </button>
-          
-          <button 
-            onClick={() => { setActiveTab('inquiries'); setIsSidebarOpen(false); }}
-            className={`flex items-center w-full px-4 py-3 mt-2 rounded-xl transition-all ${activeTab === 'inquiries' ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
-          >
-            <FaCommentDots className="mr-3 text-lg" /> Inquiries
-            {inquiries.filter(i => !i.isRead).length > 0 && (
-              <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                {inquiries.filter(i => !i.isRead).length}
-              </span>
-            )}
-          </button>
-
-          <button 
-            onClick={() => { setActiveTab('jobApplications'); setIsSidebarOpen(false); }}
-            className={`flex items-center w-full px-4 py-3 mt-2 rounded-xl transition-all ${activeTab === 'jobApplications' ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
-          >
-            <FaBriefcase className="mr-3 text-lg" /> Recruitment
-          </button>
+          <div className="text-[10px] text-slate-500 uppercase tracking-[0.15em] font-semibold mt-6 mb-2 px-4">School Data</div>
+          {[
+            { id: 'applications', label: 'Applications', icon: <FaClipboardList /> },
+            { id: 'students', label: 'Students', icon: <FaUsers /> },
+            { id: 'inquiries', label: 'Inquiries', icon: <FaCommentDots />, badge: inquiries.filter(i => !i.isRead).length },
+            { id: 'jobApplications', label: 'Recruitment', icon: <FaBriefcase /> }
+          ].map(item => (
+            <button 
+              key={item.id}
+              onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }}
+              className={`group flex items-center w-full px-4 py-2.5 rounded-xl transition-all duration-200 ${activeTab === item.id ? 'bg-blue-600/20 text-white font-semibold' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
+            >
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-colors text-sm ${activeTab === item.id ? 'bg-blue-500 text-white shadow-md shadow-blue-500/40' : 'bg-slate-700/50 text-slate-400 group-hover:bg-slate-700 group-hover:text-white'}`}>
+                {item.icon}
+              </div>
+              <span className="text-sm">{item.label}</span>
+              {item.badge > 0 && (
+                <span className="ml-auto bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm shadow-red-500/30 animate-pulse">
+                  {item.badge}
+                </span>
+              )}
+              {activeTab === item.id && !item.badge && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400" />}
+            </button>
+          ))}
 
           {adminUser?.role === 'superadmin' && (
             <>
-              <div className="text-[10px] text-white/30 uppercase tracking-widest font-black mt-6 mb-2 px-4">System Control</div>
-              <button 
-                onClick={() => { setActiveTab('admins'); setIsSidebarOpen(false); }}
-                className={`flex items-center w-full px-4 py-3 rounded-xl transition-all ${activeTab === 'admins' ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
-              >
-                <FaUsers className="mr-3 text-lg text-tertiary" /> Manage Admins
-              </button>
-              <button 
-                onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}
-                className={`flex items-center w-full px-4 py-3 rounded-xl transition-all ${activeTab === 'settings' ? 'bg-white/10 text-white font-bold border-l-4 border-tertiary' : 'hover:bg-white/5 text-white/70 hover:text-white'}`}
-              >
-                <FaCog className="mr-3 text-lg text-tertiary" /> Settings
-              </button>
+              <div className="text-[10px] text-slate-500 uppercase tracking-[0.15em] font-semibold mt-6 mb-2 px-4">System Control</div>
+              {[
+                { id: 'admins', label: 'Manage Admins', icon: <FaUsers /> },
+                { id: 'settings', label: 'Settings', icon: <FaCog /> }
+              ].map(item => (
+                <button 
+                  key={item.id}
+                  onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }}
+                  className={`group flex items-center w-full px-4 py-2.5 rounded-xl transition-all duration-200 ${activeTab === item.id ? 'bg-amber-500/20 text-amber-300 font-semibold' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center mr-3 transition-colors text-sm ${activeTab === item.id ? 'bg-amber-500 text-white shadow-md shadow-amber-500/40' : 'bg-slate-700/50 text-amber-400/70 group-hover:bg-slate-700 group-hover:text-amber-300'}`}>
+                    {item.icon}
+                  </div>
+                  <span className="text-sm">{item.label}</span>
+                  {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                </button>
+              ))}
             </>
           )}
         </div>
-        <div className="p-4 pb-8 border-t border-white/10 space-y-2 shrink-0">
-          <NavLink to="/" className="flex items-center w-full px-4 py-2 rounded-xl hover:bg-white/10 transition-colors text-white/60 hover:text-white text-sm">
-            <FaSignOutAlt className="mr-3 text-lg" /> Return to Website
+
+        {/* Footer Actions */}
+        <div className="p-4 pb-6 border-t border-slate-700/50 space-y-1.5 shrink-0">
+          <NavLink to="/" className="flex items-center w-full px-4 py-2.5 rounded-xl hover:bg-white/5 transition-colors text-slate-500 hover:text-white text-sm gap-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center text-sm">
+              <FaSignOutAlt />
+            </div>
+            Return to Website
           </NavLink>
           <button 
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors text-sm font-bold"
+            className="flex items-center w-full px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all text-sm font-medium gap-3 group"
           >
-            <FaSignOutAlt className="mr-3 text-lg" /> Logout Session
+            <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center text-sm group-hover:bg-red-500/30 transition-colors">
+              <FaSignOutAlt />
+            </div>
+            Logout Session
           </button>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
-        <header className="bg-white shadow-sm px-4 md:px-8 py-4 flex justify-between items-center border-b border-gray-100 z-30">
+        <header className="bg-white/80 backdrop-blur-xl px-4 md:px-8 py-3.5 flex justify-between items-center border-b border-gray-200/60 z-30">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+              className="lg:hidden p-2.5 hover:bg-gray-100 rounded-xl text-gray-500 transition-colors"
             >
-              <FaBars size={20} />
+              <FaBars size={18} />
             </button>
-            <h1 className="text-lg md:text-2xl font-bold text-gray-800 capitalize tracking-tight">{activeTab}</h1>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="hidden sm:block text-right">
-              <p className="text-sm font-bold text-gray-800">{adminUser?.name || 'Admin User'}</p>
-              <p className="text-[10px] text-gray-500 uppercase font-black tracking-tighter">{adminUser?.role === 'superadmin' ? 'Super Administrator' : 'Administrator'}</p>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold text-gray-800 capitalize tracking-tight">
+                {activeTab === 'dashboard' ? `Welcome back, ${adminUser?.name?.split(' ')[0] || 'Admin'}` : activeTab.replace(/([A-Z])/g, ' $1').trim()}
+              </h1>
+              <p className="text-xs text-gray-400 hidden sm:block">
+                {activeTab === 'dashboard' 
+                  ? `${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}` 
+                  : 'Manage your content and settings'}
+              </p>
             </div>
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-md border-2 border-primary-fixed">
-              {adminUser?.name?.charAt(0) || 'A'}
+          </div>
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="hidden sm:block text-right">
+              <p className="text-sm font-semibold text-gray-800">{adminUser?.name || 'Admin User'}</p>
+              <p className="text-[10px] text-gray-400 font-medium">{adminUser?.role === 'superadmin' ? 'Super Administrator' : 'Administrator'}</p>
+            </div>
+            <div className="relative">
+              <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-blue-200">
+                {adminUser?.name?.charAt(0) || 'A'}
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
             </div>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-surface">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8" style={{ backgroundColor: '#F8FAFC' }}>
           {activeTab === 'dashboard' && renderDashboard()}
           {activeTab === 'gallery' && renderGalleryTab()}
           {activeTab === 'videos' && renderVideosTab()}

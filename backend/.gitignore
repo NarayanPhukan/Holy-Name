@@ -3,4 +3,3 @@ uploads/
 .env
 *.log
 dist/
-.env.example

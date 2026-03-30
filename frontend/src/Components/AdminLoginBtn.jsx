@@ -31,12 +31,12 @@ function AdminLoginBtn({ onClick }) {
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+    <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
       {isLoggedIn ? (
         <>
           {location.pathname !== '/admin' && (
             <button
-              className="flex items-center justify-center w-full sm:w-auto px-5 py-2 bg-primary text-white rounded-full hover:bg-primary-container transition-colors shadow-sm font-semibold text-sm h-10"
+              className="flex items-center justify-center w-full sm:w-auto px-5 py-2.5 bg-primary hover:bg-blue-700 text-white rounded-lg shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-fast font-semibold text-sm h-10 focus-ring dark:hover:bg-blue-600"
               onClick={handleDashboard}
             >
               <FaUserShield className="mr-2" size={16} />
@@ -44,7 +44,7 @@ function AdminLoginBtn({ onClick }) {
             </button>
           )}
           <button
-            className="flex items-center justify-center w-full sm:w-auto px-5 py-2 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition-colors shadow-sm font-semibold text-sm h-10"
+            className="flex items-center justify-center w-full sm:w-auto px-5 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg shadow-soft hover:shadow-medium transition-all duration-fast font-semibold text-sm h-10 focus-ring border border-red-200 dark:border-red-800"
             onClick={handleLogout}
           >
             <FaSignOutAlt className="mr-2" size={16} />
@@ -53,7 +53,7 @@ function AdminLoginBtn({ onClick }) {
         </>
       ) : (
         <button
-          className="flex items-center justify-center w-full sm:w-auto px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-container transition-colors shadow-md hover:shadow-lg:shadow-none:shadow-none font-medium text-sm"
+          className="flex items-center justify-center w-full sm:w-auto px-5 py-2.5 bg-primary hover:bg-blue-700 text-white rounded-lg shadow-elevation-1 hover:shadow-elevation-2 transition-all duration-fast font-semibold text-sm h-10 focus-ring dark:hover:bg-blue-600"
           onClick={handleLogin}
         >
           <FaUserShield className="mr-2" size={16} />
